@@ -1,0 +1,53 @@
+package websock
+
+type MessageType int
+
+const (
+	// Error means that en error occurred
+	Error MessageType = iota
+	// OK means that the action was successful
+	OK
+
+	// RegisterUser is sent when a client wants to register a new user
+	RegisterUser
+	// LoginUser is sent when a client wants to authenticate as a user
+	LoginUser
+	// AuthChallenge is sent by the server when an authentication challenge is initiated
+	AuthChallenge
+	// AuthChallengeResponse is sent by the client in resposne to an authentication challenge
+	AuthChallengeResponse
+
+	// SendDirect is sent when a client sends a direct message
+	SendDirect
+	// DirectMessageReceived is sent by the server when another user receive a direct message
+	DirectMessageReceived
+
+	// Ping is a keepalive message sent by the server
+	Ping
+	// Pong is sent by the client in response to a Ping message
+	Pong
+)
+
+// Message is the "base" message which is used for all websocket messages
+// Type contains the type of the message (one of the MessageType enums)
+// Message contains the actual content of the message, which can be a string, byte slice, a struct, or nil.
+type Message struct {
+	Type    MessageType
+	Message interface{}
+}
+
+// RegisterUserMessage is the message sent by a client to request user registration
+type RegisterUserMessage struct {
+	Username  string
+	PublicKey []byte
+}
+
+// User is used in ChatInfoMessage, and by the server when notifying a client about a new connected user
+type User struct {
+	Username  string
+	PublicKey []byte
+}
+
+type SendChatMessage struct {
+	EncryptedContent map[string][]byte
+}
