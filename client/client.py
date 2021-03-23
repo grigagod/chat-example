@@ -22,3 +22,9 @@ class Client:
     def show_keys(self):
         print(self.priv_key.to_hex())
         print(binascii.hexlify(self.priv_key.public_key.format()))
+
+
+    def create_register_msg(self):
+        return json.dump({'Type' : 1, 
+                          'username' : self.username, 
+                          'pub_key' : sbinascii.hexlify(self.priv_key.public_key.format())})        
