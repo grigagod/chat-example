@@ -1,15 +1,23 @@
-from diffiehellman.diffiehellman import DiffieHellman
+#!/usr/bin/env python
 
-alice = DiffieHellman()
-bob = DiffieHellman()
+import client
+import websockets
+import asyncio
 
-alice.generate_public_key()    # automatically generates private key
-bob.generate_public_key()
+async def register():
+    uri = "ws://localhost:8001"
+    orif = websockets.Origin("http://")
+    async with websockets.connect(uri, origin=orif)as websocket:
+        
+        c = client.Client("user1")
+        c.show_keys()
+        name = c.username
 
-alice.generate_shared_secret(bob.public_key, echo_return_key=True)
-bob.generate_shared_secret(alice.public_key, echo_return_key=True)
+        await websocket.send(c.create_register_msg())
 
-a = alice.shared_key
-print(a)
-b = bob.shared_key
-print(b)
+        response = await websocket.recv()
+        print(f"< {response}")
+
+
+asyncio.get_event_loop().run_until_complete(register())
+
