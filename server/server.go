@@ -1,7 +1,6 @@
-package main
+package server
 
 import (
-	"github.com/gorilla/websocket"
 	"github.com/grigagod/chat-example/pdb"
 	"gorm.io/gorm"
 	"log"

@@ -1,8 +1,7 @@
-package main
+package server
 
 import (
 	"github.com/gorilla/websocket"
-	"github.com/monnand/dhkx"
 	"sync"
 )
 
