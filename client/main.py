@@ -6,7 +6,8 @@ import asyncio
 
 async def register():
     uri = "ws://localhost:8001"
-    async with websockets.connect(uri) as websocket:
+    orif = websockets.Origin("http://")
+    async with websockets.connect(uri, origin=orif)as websocket:
         
         c = client.Client("user1")
         c.show_keys()

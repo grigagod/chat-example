@@ -25,6 +25,6 @@ class Client:
 
 
     def create_register_msg(self):
-        return json.dump({'Type' : 1, 
+        return json.dumps({'Type' : 2, 
                           'username' : self.username, 
-                          'pub_key' : sbinascii.hexlify(self.priv_key.public_key.format())})        
+                          'pub_key' : binascii.hexlify(self.priv_key.public_key.format()).decode("utf-8")})        
