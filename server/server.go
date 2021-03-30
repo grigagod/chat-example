@@ -90,9 +90,8 @@ func (s *Server) NoAuthHandler(ws *websocket.Conn, pongCount *int64) bool {
 		// Check message type and forward to appropriate handlers
 		switch msg.Type {
 		case websock.RegisterUser:
-			if ValidateRegisterUser(ws, msg.Message.(*websock.RegisterUserMessage)) {
-				s.RegisterUser(ws, msg.Message.(*websock.RegisterUserMessage))
-			}
+			log.Printf("Registering user from %s", ws.Request().RemoteAddr)
+			s.RegisterUser(ws, msg.Message.(*websock.RegisterUserMessage))
 		case websock.LoginUser:
 			if s.LoginUser(ws, msg.Message.(string)) {
 				return true

@@ -18,6 +18,10 @@ import (
 	"strings"
 )
 
+const (
+	serverStr = "ws://127.0.0.1:8001"
+)
+
 // Result is used by WSReader to communicate the websocket messages between threads
 type Result struct {
 	Message *websock.Message
@@ -62,8 +66,9 @@ func (wr *WSReader) GetNext() (*websock.Message, error) {
 type Client struct {
 	wsReader *WSReader
 	ws       *websocket.Conn
-	keys     crypto.Keys
+	keys     *crypto.Keys
 	authKey  []byte
+	username string
 }
 
 func (c *Client) Connect(server string) bool {
@@ -87,26 +92,34 @@ func (c *Client) Connect(server string) bool {
 }
 
 func savePrivKey(username string, privKey *big.Int) {
-	pem := util.MarshalKey(privKey)
-	if err := ioutil.WriteFile(username+".pem", pem, 0644); err != nil {
+	message := util.MarshalKey(privKey)
+	if err := ioutil.WriteFile(username+".chat", message, 0644); err != nil {
 		fmt.Println(err)
 	}
 }
-
-func menu() {
+func menu(c *Client) {
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Print("> ")
 		text, _ := reader.ReadString('\n')
 		text = strings.Replace(text, "\n", "", -1)
+		args := strings.Split(text, " ")
+		cmd := strings.TrimSpace(args[0])
 
-		if text == "exit" {
+		if cmd == "/exit" {
 			fmt.Println("You have been disconnected from the server")
 			break
 		}
 
-		switch text {
-		// TODO: make cases
+		switch cmd {
+		case "/name":
+			c.username = args[1]
+			fmt.Printf("Your username is : %s", c.username)
+		case "/register":
+			c.createUserHandler(serverStr, c.username)
+		case "/login":
+			if args[1] != "" {
+				c.loginUserHandler(serverStr, args[1])
+			}
 		default:
 			fmt.Println("Unknown command")
 		}
@@ -114,10 +127,10 @@ func menu() {
 }
 
 func main() {
-	server := "ws://127.0.0.1:8001"
-	var client Client
-	if client.Connect(server) {
-		menu()
+	client := &Client{}
+
+	if client.Connect(serverStr) {
+		menu(client)
 	}
 
 }

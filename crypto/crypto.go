@@ -28,6 +28,17 @@ func (keys *Keys) SetPublicKey() {
 	}
 }
 
+func KeysFromPrivate(privKey *big.Int) *Keys {
+	var gp GP
+	gp.SetGP()
+	keys := new(Keys)
+	keys.PrivateKey = privKey
+	keys.group = &gp
+	keys.SetPublicKey()
+	return keys
+
+}
+
 func (keys *Keys) GenerateKeys() {
 	var gp GP
 	gp.SetGP()

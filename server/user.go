@@ -82,7 +82,7 @@ type User struct {
 func (s *Server) RegisterUser(ws *websocket.Conn, msg *websock.RegisterUserMessage) {
 	// Add new user to database
 	user := pdb.NewUser(msg.Username, msg.PublicKey)
-	if err := s.Db.Create(&user); err != nil {
+	if err := s.Db.Create(&user).Error; err != nil {
 		websock.Send(ws, &websock.Message{Type: websock.Error, Message: "Error registering user"})
 		return
 	}
@@ -118,6 +118,8 @@ func (s *Server) LoginUser(ws *websocket.Conn, username string) bool {
 		s.AddClient(ws, newUser)
 		websock.Send(ws, &websock.Message{Type: websock.OK, Message: "Logged in"})
 		return true
+	} else {
+		log.Printf("Client %s failed authentication", ws.Request().RemoteAddr)
 	}
 
 	websock.Send(ws, &websock.Message{Type: websock.Error, Message: "Invalid auth key"})
@@ -131,8 +133,7 @@ func NewUser(db *gorm.DB, username string) (*User, []byte, error) {
 	// Retrieve user from DB
 
 	user := new(pdb.User)
-	db.Where("name = ?", username).First(&user)
-	if user.Username != username {
+	if err := db.Where("Username = ?", username).First(&user).Error; err != nil {
 		log.Println("No")
 		return nil, nil, errors.New("Registered user not found")
 	}
