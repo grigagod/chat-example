@@ -32,7 +32,7 @@ func main() {
 	checkEnvVars()
 
 	serverConfig := server.Config{
-		Dsn:       envVars["PQL_DSN"],
+		DSN:       envVars["PQL_DSN"],
 		Keepalive: 15,
 	}
 

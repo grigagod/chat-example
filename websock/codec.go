@@ -29,6 +29,7 @@ func Receive(ws *websocket.Conn, msg *Message) error {
 // Register types for gob encoding/decoding
 func init() {
 	gob.Register(&RegisterUserMessage{})
+	gob.Register(&ChatUsersMessage{})
 	gob.Register(&ChatMessage{})
 	gob.Register(&SendChatMessage{})
 }
@@ -74,7 +75,7 @@ func unmarshalMessage(data []byte, payloadType byte, v interface{}) error {
 
 func checkType(v interface{}, msgType MessageType) error {
 	switch msgType {
-	case Error, OK, LoginUser, UserLeft:
+	case Error, OK, LoginUser:
 		if _, ok := v.(string); !ok {
 			return errors.New("Expected message type string")
 		}
@@ -98,10 +99,13 @@ func checkType(v interface{}, msgType MessageType) error {
 		if _, ok := v.(*ChatMessage); !ok {
 			return errors.New("Expected message type *ChatMessage")
 		}
-
-	case UserJoined:
-		if _, ok := v.(*User); !ok {
-			return errors.New("Expected message type *User")
+	case ChatUsersInfo, Ping, Pong:
+		if v != nil {
+			return errors.New("Expected message to be nil")
+		}
+	case ChatUsersResponse:
+		if _, ok := v.(*ChatUsersMessage); !ok {
+			return errors.New("Expected message type *ChatUsersMessage")
 		}
 	default:
 		return errors.New("Invalid message type")

@@ -32,10 +32,10 @@ const (
 	// DirectMessageReceived is sent by the server when another user receive a direct message
 	DirectMessageReceived
 
-	// UserJoined is sent by the server when a user joins a chat server
-	UserJoined
-	// UserLeft is sent by the server when a user leaves a chat server
-	UserLeft
+	// ChatUsersInfo in sent by the client to the server when client wants get list of all users in chat with their status
+	ChatUsersInfo
+	// ChatUsersResponse is sent by server to client in response to ChatUsersInfo message
+	ChatUsersResponse
 
 	// Ping is a keepalive message sent by the server
 	Ping
@@ -61,6 +61,10 @@ type RegisterUserMessage struct {
 type User struct {
 	Username  string
 	PublicKey []byte
+}
+
+type ChatUsersMessage struct {
+	Users map[string]bool
 }
 
 // ChatMessage is used in DirectMessage, and by the server when notifying a client about a new chat message
