@@ -1,4 +1,4 @@
-package main 
+package main
 
 import (
 	// "crypto/rsa"
@@ -6,18 +6,18 @@ import (
 	// "io/ioutil"
 	// "log"
 	// "os"
+	"bufio"
+	"fmt"
 	"github.com/grigagod/chat-example/crypto"
 	"golang.org/x/net/websocket"
-	"fmt"
-	"bufio"
 	"os"
 	"strings"
 )
 
 type Client struct {
-	ws          *websocket.Conn
-	keys	    crypto.Keys
-	authKey     []byte
+	ws      *websocket.Conn
+	keys    crypto.Keys
+	authKey []byte
 }
 
 func (c *Client) Connect(server string) bool {
@@ -32,7 +32,7 @@ func (c *Client) Connect(server string) bool {
 }
 
 func menu() {
-	reader := bufio.NewReader(os.Stdin) 
+	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Print("> ")
 		text, _ := reader.ReadString('\n')
@@ -52,7 +52,7 @@ func menu() {
 }
 
 func main() {
-	server := "ws://localhost:12345/ws"
+	server := "ws://127.0.0.1:8001"
 	var client Client
 	if client.Connect(server) {
 		menu()
