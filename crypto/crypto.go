@@ -2,9 +2,7 @@ package crypto
 
 import (
 	"crypto/rand"
-	"fmt"
 	"math/big"
-	//"io"
 )
 
 type GP struct {
