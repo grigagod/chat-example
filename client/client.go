@@ -3,15 +3,17 @@ package main
 import (
 	// "crypto/rsa"
 	// "errors"
-	// "io/ioutil"
+	"io/ioutil"
 	// "log"
 	// "os"
 	"bufio"
 	"errors"
 	"fmt"
 	"github.com/grigagod/chat-example/crypto"
+	"github.com/grigagod/chat-example/util"
 	"github.com/grigagod/chat-example/websock"
 	"golang.org/x/net/websocket"
+	"math/big"
 	"os"
 	"strings"
 )
@@ -82,6 +84,13 @@ func (c *Client) Connect(server string) bool {
 		go c.wsReader.Reader()
 	}
 	return true
+}
+
+func savePrivKey(username string, privKey *big.Int) {
+	pem := util.MarshalKey(privKey)
+	if err := ioutil.WriteFile(username+".pem", pem, 0644); err != nil {
+		fmt.Println(err)
+	}
 }
 
 func menu() {
