@@ -1,30 +1,29 @@
 package util
 
 import (
-	"crypto/rsa"
-	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"math/big"
 	"time"
 )
 
-// MarshalPublic marshals an RSA public key to a byte slice
-func MarshalPublic(key *rsa.PublicKey) []byte {
+// MarshalKey marshals an DH public key to a byte slice
+func MarshalKey(key *big.Int) []byte {
 	pemBlock := &pem.Block{
-		Type:  "RSA PUBLIC KEY",
-		Bytes: x509.MarshalPKCS1PublicKey(key)}
+		Type:  "DH KEY",
+		Bytes: key.Bytes()}
 
 	return pem.EncodeToMemory(pemBlock)
 }
 
-// UnmarshalPublic unmarshals an RSA public key from byte format
-func UnmarshalPublic(pemBlock []byte) (key *rsa.PublicKey, err error) {
+// UnmarshalKey unmarshals an DH key from byte format
+func UnmarshalKey(pemBlock []byte) (key *big.Int, err error) {
 	data, _ := pem.Decode(pemBlock)
 	if data == nil {
 		err = errors.New("Public key was not in the correct PEM format")
 		return
 	}
-	key, err = x509.ParsePKCS1PublicKey(data.Bytes)
+	key = new(big.Int).SetBytes(data.Bytes)
 	return
 }
 
