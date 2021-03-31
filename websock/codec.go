@@ -29,7 +29,7 @@ func Receive(ws *websocket.Conn, msg *Message) error {
 // Register types for gob encoding/decoding
 func init() {
 	gob.Register(&RegisterUserMessage{})
-	gob.Register(&ChatUsersMessage{})
+	gob.Register(&ChatInfoMessage{})
 	gob.Register(&ChatMessage{})
 	gob.Register(&SendChatMessage{})
 }
@@ -103,8 +103,8 @@ func checkType(v interface{}, msgType MessageType) error {
 		if v != nil {
 			return errors.New("Expected message to be nil")
 		}
-	case ChatUsersResponse:
-		if _, ok := v.(*ChatUsersMessage); !ok {
+	case ChatInfoResponse:
+		if _, ok := v.(*ChatInfoMessage); !ok {
 			return errors.New("Expected message type *ChatUsersMessage")
 		}
 	default:

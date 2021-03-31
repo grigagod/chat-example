@@ -11,15 +11,15 @@ func (s *Server) ResponseUsersInfo(ws *websocket.Conn) {
 
 	s.Db.Select("Username").Find(&users)
 
-	result := make(map[string]bool, len(users))
+	result := make([]string, len(users))
 
-	for _, user := range users {
-		result[user.Username] = true
+	for i, user := range users {
+		result[i] = user.Username
 	}
 
-	response := &websock.ChatUsersMessage{
+	response := &websock.ChatInfoMessage{
 		Users: result,
 	}
 
-	websock.Send(ws, &websock.Message{Type: websock.ChatUsersResponse, Message: response})
+	websock.Send(ws, &websock.Message{Type: websock.ChatInfoResponse, Message: response})
 }

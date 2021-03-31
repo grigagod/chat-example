@@ -69,6 +69,7 @@ type Client struct {
 	keys     *crypto.Keys
 	authKey  []byte
 	username string
+	users    []string
 }
 
 func (c *Client) Connect(server string) bool {
@@ -113,13 +114,16 @@ func menu(c *Client) {
 		switch cmd {
 		case "/name":
 			c.username = args[1]
-			fmt.Printf("Your username is : %s", c.username)
+			fmt.Println("Your username is : ", c.username)
 		case "/register":
 			c.createUserHandler(serverStr, c.username)
 		case "/login":
 			if args[1] != "" {
 				c.loginUserHandler(serverStr, args[1])
+
 			}
+		case "/cinfo":
+			c.chatInfoHandler()
 		default:
 			fmt.Println("Unknown command")
 		}

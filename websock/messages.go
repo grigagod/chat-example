@@ -35,7 +35,7 @@ const (
 	// ChatUsersInfo in sent by the client to the server when client wants get list of all users in chat with their status
 	ChatUsersInfo
 	// ChatUsersResponse is sent by server to client in response to ChatUsersInfo message
-	ChatUsersResponse
+	ChatInfoResponse
 
 	// Ping is a keepalive message sent by the server
 	Ping
@@ -63,8 +63,8 @@ type User struct {
 	PublicKey []byte
 }
 
-type ChatUsersMessage struct {
-	Users map[string]bool
+type ChatInfoMessage struct {
+	Users []string
 }
 
 // ChatMessage is used in DirectMessage, and by the server when notifying a client about a new chat message
