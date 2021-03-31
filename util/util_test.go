@@ -10,9 +10,10 @@ func TestAuthChallenge(t *testing.T) {
 
 	encAuth, authKey := GenAuthChallenge(keys.PublicKey)
 	decrAuth := DecryptChallenge(keys.PublicKey, encAuth)
-
 	if !bytes.Equal(authKey, decrAuth) {
-		t.Fatal("Unable to pass AuthChallenge\n", authKey, "\n", decrAuth)
+		t.Log(decrAuth)
+		t.Log(authKey)
+		t.Fatal("Unable to pass AuthChallenge")
 
 	}
 

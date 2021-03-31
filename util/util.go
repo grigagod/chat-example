@@ -3,14 +3,15 @@ package util
 import (
 	"crypto/aes"
 	"crypto/rand"
+	"crypto/sha1"
+
 	//"encoding/pem"
 	//"errors"
-	"github.com/grigagod/chat-example/crypto"
 	"math/big"
 	"time"
-)
 
-const authKeyLen = 64
+	"github.com/grigagod/chat-example/crypto"
+)
 
 func GenKeyPair() (keys crypto.Keys) {
 	keys.GenerateKeys()
@@ -30,13 +31,14 @@ func UnmarshalKey(slice []byte) (key *big.Int, err error) {
 
 // GenAuthChallenge generates Challenge using first 32 bytes of public keys as chiper
 func GenAuthChallenge(pubKey *big.Int) ([]byte, []byte) {
-	encKey := MarshalKey(pubKey)
+	h := sha1.New()
+	encKey := h.Sum(MarshalKey(pubKey))[:16]
 	authKey := make([]byte, len(encKey))
 	rand.Read(authKey)
 
 	c, _ := aes.NewCipher(encKey)
 
-	encAuthKey := make([]byte, authKeyLen)
+	encAuthKey := make([]byte, len(authKey))
 
 	c.Encrypt(encAuthKey, authKey)
 
@@ -45,8 +47,9 @@ func GenAuthChallenge(pubKey *big.Int) ([]byte, []byte) {
 
 // DecryptChallenge decryptes Challenge using first 32 bytes of pubKey
 func DecryptChallenge(pubKey *big.Int, msg []byte) []byte {
-	decrKey := MarshalKey(pubKey)[:64]
-	authKey := make([]byte, authKeyLen)
+	h := sha1.New()
+	decrKey := h.Sum(MarshalKey(pubKey))[:16]
+	authKey := make([]byte, len(msg))
 
 	c, _ := aes.NewCipher(decrKey)
 
