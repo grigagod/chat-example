@@ -87,5 +87,11 @@ func (c *Client) loginUserHandler(server string, username string) {
 	// Login success, show the chat rooms GUI
 	c.authKey = decKey
 	c.keys = keys
-	fmt.Println("Successfully logged in")
+	fmt.Println("Successfully logged in, starting session")
+	go c.StartChatSession()
+}
+
+func (c *Client) chatInfoHandler() {
+	websock.Send(c.ws, &websock.Message{Type: websock.ChatUsersInfo})
+
 }
