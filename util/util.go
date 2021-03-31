@@ -3,52 +3,60 @@ package util
 import (
 	"crypto/aes"
 	"crypto/rand"
-	"encoding/pem"
-	"errors"
-	"github.com/grigagod/chat-example/crypto"
+	"crypto/sha1"
+
+	//"encoding/pem"
+	//"errors"
 	"math/big"
 	"time"
+
+	"github.com/grigagod/chat-example/crypto"
 )
 
-const authKeyLen = 64
-
-func GenKeyPair() (keys *crypto.Keys) {
+func GenKeyPair() (keys crypto.Keys) {
 	keys.GenerateKeys()
 	return
 }
 
 // MarshalKey marshals an DH public key to a byte slice
 func MarshalKey(key *big.Int) []byte {
-	pemBlock := &pem.Block{
-		Type:  "DH KEY",
-		Bytes: key.Bytes()}
-
-	return pem.EncodeToMemory(pemBlock)
+	return key.Bytes()
 }
 
 // UnmarshalKey unmarshals an DH key from byte format
-func UnmarshalKey(pemBlock []byte) (key *big.Int, err error) {
-	data, _ := pem.Decode(pemBlock)
-	if data == nil {
-		err = errors.New("Public key was not in the correct PEM format")
-		return
-	}
-	key = new(big.Int).SetBytes(data.Bytes)
+func UnmarshalKey(slice []byte) (key *big.Int, err error) {
+	key = new(big.Int).SetBytes(slice)
 	return
 }
 
+// GenAuthChallenge generates Challenge using first 32 bytes of public keys as chiper
 func GenAuthChallenge(pubKey *big.Int) ([]byte, []byte) {
-	encKey := MarshalKey(pubKey)[:32]
-	authKey := make([]byte, authKeyLen)
+	h := sha1.New()
+	encKey := h.Sum(MarshalKey(pubKey))[:16]
+	authKey := make([]byte, len(encKey))
 	rand.Read(authKey)
 
 	c, _ := aes.NewCipher(encKey)
 
-	encAuthKey := make([]byte, authKeyLen)
+	encAuthKey := make([]byte, len(authKey))
 
 	c.Encrypt(encAuthKey, authKey)
 
 	return encAuthKey, authKey
+}
+
+// DecryptChallenge decryptes Challenge using first 32 bytes of pubKey
+func DecryptChallenge(pubKey *big.Int, msg []byte) []byte {
+	h := sha1.New()
+	decrKey := h.Sum(MarshalKey(pubKey))[:16]
+	authKey := make([]byte, len(msg))
+
+	c, _ := aes.NewCipher(decrKey)
+
+	c.Decrypt(authKey, msg)
+
+	return authKey
+
 }
 
 // NowMillis returns the current unix millisecond timestamp
