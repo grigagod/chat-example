@@ -17,15 +17,18 @@ const (
 	// AuthChallengeResponse is sent by the client in resposne to an authentication challenge
 	AuthChallengeResponse
 
-	// PubKeyRequest is sent to the sever when client wants get another client public key
-	PubKeyRequest
+	// KeyExchangeInit is sent to the sever when client wants to start KeyExchange with another client
+	KeyExchangeInit
 	// PubKeyResponse is sent by the server to the client in response to an KeyExchangeRequest
-	PubKeyResponse
+	KeyExchangeStatus
 
-	// KeyExchangeChallenge is sent from one client to another in order to start Direct Messaging
-	KeyExchangeChallenge
-	// KeyExchangeResponse is sent by the another client in response to KeyExchangeChallenge
-	KeyExchangeResponse
+	// KeyExchangeChallenge is initiated by PubKeyRequest msg and sent by server to another in order to start Direct Messaging ("starting friendship")
+	KeyExchangeRequest
+	// KeyExchangeAccept is sent by the invited client in response to KeyExchangeRequest message
+	KeyExchangeAccept
+
+	//KeyExchangeDecline
+	KeyExchangeDecline
 
 	// SendDirect is sent when a client sends a direct message
 	SendDirect
@@ -57,14 +60,21 @@ type RegisterUserMessage struct {
 	PublicKey []byte
 }
 
+// ChatInfoMessage is sent by the server as a response for ChatUsersInfo
+type ChatInfoMessage struct {
+	Users []string
+}
+
+// KeyExchangeMessage is sent by the server
+type KeyExchangeMessage struct {
+	Friendname   string
+	FriendPubKey []byte
+}
+
 // User is used in PublicKey , and by the server when notifying a client about a new connected user
 type User struct {
 	Username  string
 	PublicKey []byte
-}
-
-type ChatInfoMessage struct {
-	Users []string
 }
 
 // ChatMessage is used in DirectMessage, and by the server when notifying a client about a new chat message
