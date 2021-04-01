@@ -30,6 +30,7 @@ func Receive(ws *websocket.Conn, msg *Message) error {
 func init() {
 	gob.Register(&RegisterUserMessage{})
 	gob.Register(&ChatInfoMessage{})
+	gob.Register(&KeyExchangeMessage{})
 	gob.Register(&ChatMessage{})
 	gob.Register(&SendChatMessage{})
 }

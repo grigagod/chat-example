@@ -95,3 +95,7 @@ func (c *Client) chatInfoHandler() {
 	websock.Send(c.ws, &websock.Message{Type: websock.ChatUsersInfo})
 
 }
+
+func (c *Client) addToFriendsHandler(friendname string) {
+	websock.Send(c.ws, &websock.Message{Type: websock.KeyExchangeInit, Message: friendname})
+}

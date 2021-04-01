@@ -63,6 +63,6 @@ func (keys *Keys) GenerateKeys() {
 	keys.SetPublicKey()
 }
 
-func (self *Keys) KeyMixing(other *Keys) *big.Int {
-	return new(big.Int).Exp(other.PublicKey, self.PrivateKey, self.group.p)
+func (self *Keys) KeyMixing(otherPubKey *big.Int) *big.Int {
+	return new(big.Int).Exp(otherPubKey, self.PrivateKey, self.group.p)
 }

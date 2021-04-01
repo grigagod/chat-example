@@ -1,7 +1,23 @@
 package pdb
 
 type NotificationType int
+
+const (
+	KeyExchange NotificationType = iota
+)
+
 type NotificationState int
+
+const (
+	//Initiated means some notification initiated by sender
+	Initiated NotificationState = iota
+	//Received means some notification received by receiver
+	Received
+	//Accepted means some notification accepted by receiver
+	Accepted
+	//Declined means some notification declined by receiver
+	Declined
+)
 
 type Notification struct {
 	SenderID   uint `gorm:"primaryKey;autoincrement:false"`

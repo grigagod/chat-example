@@ -64,12 +64,14 @@ func (wr *WSReader) GetNext() (*websock.Message, error) {
 }
 
 type Client struct {
-	wsReader *WSReader
-	ws       *websocket.Conn
-	keys     *crypto.Keys
-	authKey  []byte
-	username string
-	users    []string
+	wsReader      *WSReader
+	ws            *websocket.Conn
+	keys          *crypto.Keys
+	authKey       []byte
+	username      string
+	users         []string
+	friends       map[string]*big.Int
+	friendInvites map[string]*big.Int
 }
 
 func (c *Client) Connect(server string) bool {
@@ -124,6 +126,19 @@ func menu(c *Client) {
 			}
 		case "/cinfo":
 			c.chatInfoHandler()
+		case "/invite":
+			for _, v := range c.users {
+				if v == args[1] {
+					c.addToFriendsHandler(args[1])
+				}
+			}
+			fmt.Println("No registered user with such nickname")
+		case "/accept":
+			for k := range c.friends {
+				if k == args[1] {
+
+				}
+			}
 		default:
 			fmt.Println("Unknown command")
 		}
