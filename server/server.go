@@ -1,13 +1,14 @@
 package server
 
 import (
+	"log"
+	"sync/atomic"
+	"time"
+
 	"github.com/grigagod/chat-example/pdb"
 	"github.com/grigagod/chat-example/websock"
 	"golang.org/x/net/websocket"
 	"gorm.io/gorm"
-	"log"
-	"sync/atomic"
-	"time"
 )
 
 type Config struct {
@@ -116,6 +117,10 @@ func (s *Server) AuthedHandler(ws *websocket.Conn, pongCount *int64) {
 		switch msg.Type {
 		case websock.ChatUsersInfo:
 			s.ResponseUsersInfo(ws)
+		case websock.KeyExchangeInit:
+			s.ResponseKeyExchInit(ws, msg.Message.(string))
+		case websock.KeyExchangeAccept, websock.KeyExchangeDecline:
+			s.HandleKeyExchResponse(ws, msg)
 		case websock.Pong:
 			log.Printf("Receive pong from %s", ws.Request().RemoteAddr)
 			atomic.AddInt64(pongCount, 1)

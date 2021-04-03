@@ -1,11 +1,5 @@
 package pdb
 
-type NotificationType int
-
-const (
-	KeyExchange NotificationType = iota
-)
-
 type NotificationState int
 
 const (
@@ -20,19 +14,17 @@ const (
 )
 
 type Notification struct {
-	SenderID   uint `gorm:"primaryKey;autoincrement:false"`
-	ReceiverID uint `gorm:"primaryKey;autoincrement:false"`
-	Type       NotificationType
-	State      NotificationState
-	Sender     User `gorm:"foreignKey:SenderID"`
-	Receiver   User `gorm:"foreignKey:ReceiverID"`
+	SenderName   string `gorm:"primaryKey;autoincrement:false"`
+	ReceiverName string `gorm:"primaryKey;autoincrement:false"`
+	State        NotificationState
+	Sender       User `gorm:"foreignKey:SenderName"`
+	Receiver     User `gorm:"foreignKey:ReceiverName"`
 }
 
-func NewNotification(ntype NotificationType, sender *User, receiver *User, state NotificationState) *Notification {
+func NewNotification(sender *User, receiver *User) *Notification {
 	return &Notification{
-		SenderID:   sender.ID,
-		ReceiverID: receiver.ID,
-		Type:       ntype,
-		State:      state,
+		SenderName:   sender.Username,
+		ReceiverName: receiver.Username,
+		State:        Initiated,
 	}
 }

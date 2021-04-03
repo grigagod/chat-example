@@ -153,3 +153,50 @@ func NewUser(db *gorm.DB, username string) (*User, []byte, error) {
 		AuthKey:   authKey,
 		PublicKey: pubKey}, encKey, nil
 }
+
+func (s *Server) SendExistingNotifications(ws *websocket.Conn) {
+	user, _ := s.Users.Get(ws)
+	var invites []pdb.Notification
+	var receiver pdb.User
+
+	// Finding invites which is sent by this user
+	s.Db.Where("sender_name = ? AND status IN ?", user.Username, []pdb.NotificationState{pdb.Accepted, pdb.Declined}).Find(&invites)
+
+	for _, invite := range invites {
+		switch invite.State {
+		case pdb.Accepted:
+			s.Db.First(&receiver, "username = ?", invite.ReceiverName)
+			err := websock.Send(ws, &websock.Message{Type: websock.KeyExchangeAccept, Message: websock.KeyExchangeMessage{
+				Friendname:   receiver.Username,
+				FriendPubKey: receiver.PublicKey,
+			}})
+			if err == nil {
+				s.Db.Delete(&invite)
+			}
+		case pdb.Declined:
+			err := websock.Send(ws, &websock.Message{Type: websock.KeyExchangeDecline, Message: invite.ReceiverName})
+
+			if err == nil {
+				s.Db.Delete(&invite)
+			}
+		}
+	}
+
+	var sender pdb.User
+	// Finding invite which is sent to this user
+
+	s.Db.Where("receiver_name = ? AND state = ? ", user.Username, pdb.Initiated).Find(&invites)
+
+	for _, invite := range invites {
+		s.Db.First(&sender, "username = ?", invite.SenderName)
+
+		err := websock.Send(ws, &websock.Message{Type: websock.KeyExchangeRequest, Message: websock.KeyExchangeMessage{
+			Friendname:   sender.Username,
+			FriendPubKey: sender.PublicKey,
+		}})
+
+		if err == nil {
+			s.Db.Model(&invite).Update("state", pdb.Received)
+		}
+	}
+}

@@ -9,13 +9,14 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"math/big"
+	"os"
+	"strings"
+
 	"github.com/grigagod/chat-example/crypto"
 	"github.com/grigagod/chat-example/util"
 	"github.com/grigagod/chat-example/websock"
 	"golang.org/x/net/websocket"
-	"math/big"
-	"os"
-	"strings"
 )
 
 const (
@@ -100,6 +101,7 @@ func savePrivKey(username string, privKey *big.Int) {
 		fmt.Println(err)
 	}
 }
+
 func menu(c *Client) {
 	reader := bufio.NewReader(os.Stdin)
 	for {
