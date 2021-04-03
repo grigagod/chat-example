@@ -124,7 +124,7 @@ func menu(c *Client) {
 		case "/login":
 			if args[1] != "" {
 				c.loginUserHandler(serverStr, args[1])
-
+				
 			}
 		case "/cinfo":
 			c.chatInfoHandler()
@@ -138,14 +138,18 @@ func menu(c *Client) {
 		case "/accept":
 			for k := range c.friends {
 				if k == args[1] {
-
+					// TODO
 				}
 			}
+		// TODO: decline
 		default:
 			fmt.Println("Unknown command")
 		}
 	}
 }
+
+
+
 
 func main() {
 	client := &Client{}
