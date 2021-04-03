@@ -14,11 +14,11 @@ const (
 )
 
 type Notification struct {
-	SenderName   string `gorm:"primaryKey;autoincrement:false"`
-	ReceiverName string `gorm:"primaryKey;autoincrement:false"`
+	SenderName   string `gorm:"primaryKey"`
+	ReceiverName string `gorm:"primaryKey"`
 	State        NotificationState
-	Sender       User `gorm:"foreignKey:SenderName"`
-	Receiver     User `gorm:"foreignKey:ReceiverName"`
+	Sender       User `gorm:"foreignKey:SenderName;References:Username"`
+	Receiver     User `gorm:"foreignKey:ReceiverName;References:Username"`
 }
 
 func NewNotification(sender *User, receiver *User) *Notification {

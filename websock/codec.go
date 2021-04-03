@@ -76,7 +76,7 @@ func unmarshalMessage(data []byte, payloadType byte, v interface{}) error {
 
 func checkType(v interface{}, msgType MessageType) error {
 	switch msgType {
-	case Error, OK, LoginUser:
+	case Error, OK, LoginUser, KeyExchangeInit, KeyExchangeStatus, KeyExchangeDecline:
 		if _, ok := v.(string); !ok {
 			return errors.New("Expected message type string")
 		}
@@ -95,7 +95,15 @@ func checkType(v interface{}, msgType MessageType) error {
 		if _, ok := v.(*SendChatMessage); !ok {
 			return errors.New("Expected message type *SendChatMessage")
 		}
-
+	case KeyExchangeAccept:
+		_, ok1 := v.(string)
+		if _, ok2 := v.(*KeyExchangeMessage); !ok1 && !ok2 {
+			return errors.New("Expected message type string or *KeyExchangeMessage")
+		}
+	case KeyExchangeRequest:
+		if _, ok := v.(*KeyExchangeMessage); !ok {
+			return errors.New("Expected message type *KeyExchangeMessage")
+		}
 	case DirectMessageReceived:
 		if _, ok := v.(*ChatMessage); !ok {
 			return errors.New("Expected message type *ChatMessage")

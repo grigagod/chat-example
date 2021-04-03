@@ -67,6 +67,7 @@ func (s *Server) WebsockHandler(ws *websocket.Conn) {
 	// Enter unauthenticated message loop
 	if s.NoAuthHandler(ws, pongCount) {
 		// Enter authenticated message loop
+		go s.SendExistingNotifications(ws)
 		s.AuthedHandler(ws, pongCount)
 	}
 
@@ -118,6 +119,7 @@ func (s *Server) AuthedHandler(ws *websocket.Conn, pongCount *int64) {
 		case websock.ChatUsersInfo:
 			s.ResponseUsersInfo(ws)
 		case websock.KeyExchangeInit:
+			log.Println("New invite from ", ws.Request().RemoteAddr)
 			s.ResponseKeyExchInit(ws, msg.Message.(string))
 		case websock.KeyExchangeAccept, websock.KeyExchangeDecline:
 			s.HandleKeyExchResponse(ws, msg)

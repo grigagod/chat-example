@@ -124,21 +124,16 @@ func menu(c *Client) {
 		case "/login":
 			if args[1] != "" {
 				c.loginUserHandler(serverStr, args[1])
-				
+
 			}
 		case "/cinfo":
 			c.chatInfoHandler()
 		case "/invite":
-			for _, v := range c.users {
-				if v == args[1] {
-					c.addToFriendsHandler(args[1])
-				}
-			}
-			fmt.Println("No registered user with such nickname")
+			c.inviteFriendHandler(args[1])
 		case "/accept":
-			for k := range c.friends {
+			for k, v := range c.friendInvites {
 				if k == args[1] {
-					// TODO
+					c.addToFriendsHandler(k, v)
 				}
 			}
 		// TODO: decline
@@ -147,9 +142,6 @@ func menu(c *Client) {
 		}
 	}
 }
-
-
-
 
 func main() {
 	client := &Client{}

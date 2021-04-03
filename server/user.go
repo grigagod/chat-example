@@ -160,13 +160,13 @@ func (s *Server) SendExistingNotifications(ws *websocket.Conn) {
 	var receiver pdb.User
 
 	// Finding invites which is sent by this user
-	s.Db.Where("sender_name = ? AND status IN ?", user.Username, []pdb.NotificationState{pdb.Accepted, pdb.Declined}).Find(&invites)
+	s.Db.Where("sender_name = ? AND  state IN ?", user.Username, []pdb.NotificationState{pdb.Accepted, pdb.Declined}).Find(&invites)
 
 	for _, invite := range invites {
 		switch invite.State {
 		case pdb.Accepted:
 			s.Db.First(&receiver, "username = ?", invite.ReceiverName)
-			err := websock.Send(ws, &websock.Message{Type: websock.KeyExchangeAccept, Message: websock.KeyExchangeMessage{
+			err := websock.Send(ws, &websock.Message{Type: websock.KeyExchangeAccept, Message: &websock.KeyExchangeMessage{
 				Friendname:   receiver.Username,
 				FriendPubKey: receiver.PublicKey,
 			}})
@@ -183,20 +183,23 @@ func (s *Server) SendExistingNotifications(ws *websocket.Conn) {
 	}
 
 	var sender pdb.User
+	var invitations []pdb.Notification
 	// Finding invite which is sent to this user
 
-	s.Db.Where("receiver_name = ? AND state = ? ", user.Username, pdb.Initiated).Find(&invites)
+	s.Db.Where("receiver_name = ? AND state = ? ", user.Username, pdb.Initiated).Find(&invitations)
 
-	for _, invite := range invites {
-		s.Db.First(&sender, "username = ?", invite.SenderName)
+	for _, invitation := range invitations {
+		s.Db.First(&sender, "username = ?", invitation.SenderName)
 
-		err := websock.Send(ws, &websock.Message{Type: websock.KeyExchangeRequest, Message: websock.KeyExchangeMessage{
+		err := websock.Send(ws, &websock.Message{Type: websock.KeyExchangeRequest, Message: &websock.KeyExchangeMessage{
 			Friendname:   sender.Username,
 			FriendPubKey: sender.PublicKey,
 		}})
 
 		if err == nil {
-			s.Db.Model(&invite).Update("state", pdb.Received)
+			s.Db.Model(&invitation).Update("state", pdb.Received)
+		} else {
+			log.Println(err)
 		}
 	}
 }

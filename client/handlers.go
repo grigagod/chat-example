@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"math/big"
+
 	"github.com/grigagod/chat-example/crypto"
 	"github.com/grigagod/chat-example/util"
 	"github.com/grigagod/chat-example/websock"
-	"io/ioutil"
 )
 
 // Called when user pressed the "create user" button
@@ -96,6 +98,17 @@ func (c *Client) chatInfoHandler() {
 
 }
 
-func (c *Client) addToFriendsHandler(friendname string) {
-	websock.Send(c.ws, &websock.Message{Type: websock.KeyExchangeInit, Message: friendname})
+func (c *Client) addToFriendsHandler(friendname string, friendkey *big.Int) {
+	sharedKey := c.keys.KeyMixing(friendkey)
+	c.friends[friendname] = sharedKey
+	websock.Send(c.ws, &websock.Message{Type: websock.KeyExchangeAccept, Message: friendname})
+
+}
+
+func (c *Client) inviteFriendHandler(friendname string) {
+	err := websock.Send(c.ws, &websock.Message{Type: websock.KeyExchangeInit, Message: friendname})
+	if err != nil {
+		fmt.Println(err)
+	}
+
 }

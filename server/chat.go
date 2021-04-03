@@ -39,7 +39,7 @@ func (s *Server) ResponseKeyExchInit(ws *websocket.Conn, receivername string) {
 			if err := s.Db.Create(&notification).Error; err != nil {
 				websock.Send(ws, &websock.Message{Type: websock.Error, Message: "Failed to create invite in db"})
 			} else {
-				websock.Send(ws, &websock.Message{Type: websock.KeyExchangeStatus, Message: pdb.Initiated})
+				websock.Send(ws, &websock.Message{Type: websock.KeyExchangeStatus, Message: "Invite  is sent"})
 			}
 
 		}
@@ -63,8 +63,4 @@ func (s *Server) HandleKeyExchResponse(ws *websocket.Conn, msg *websock.Message)
 	case websock.KeyExchangeDecline:
 		s.Db.Model(&pdb.Notification{}).Where("sender_name = ?", sender.Username).Where("receiver_name = ?", receiver.Username).Update("state", pdb.Declined)
 	}
-}
-
-func (s *Server) CheckForExistingInvites() {
-
 }

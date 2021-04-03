@@ -2,15 +2,17 @@ package main
 
 import (
 	"fmt"
+	"math/big"
 
-	"github.com/grigagod/chat-example/crypto"
-	"github.com/grigagod/chat-example/pdb"
+	//"github.com/grigagod/chat-example/crypto"
+
 	"github.com/grigagod/chat-example/util"
 	"github.com/grigagod/chat-example/websock"
 )
 
 func (c *Client) StartChatSession() {
-
+	c.friendInvites = make(map[string]*big.Int, 0)
+	c.friends = make(map[string]*big.Int, 0)
 	for {
 		msg, err := c.wsReader.GetNext()
 		if err != nil {
@@ -24,8 +26,8 @@ func (c *Client) StartChatSession() {
 			c.users = chatInfo.Users
 			fmt.Print(c.users)
 		case websock.KeyExchangeStatus:
-			keyExchInfo := msg.Message.(pdb.NotificationState)
-			fmt.Print("KeyExchangeStatusCode:", keyExchInfo)
+			keyExchInfo := msg.Message.(string)
+			fmt.Print(keyExchInfo)
 		case websock.KeyExchangeRequest:
 			keyExchMsg := msg.Message.(*websock.KeyExchangeMessage)
 
