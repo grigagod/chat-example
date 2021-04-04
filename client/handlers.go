@@ -89,6 +89,7 @@ func (c *Client) loginUserHandler(server string, username string) {
 	// Login success, show the chat rooms GUI
 	c.authKey = decKey
 	c.keys = keys
+	c.username = username
 	fmt.Println("Successfully logged in, starting session")
 	go c.StartChatSession()
 }
@@ -99,9 +100,15 @@ func (c *Client) chatInfoHandler() {
 }
 
 func (c *Client) addToFriendsHandler(friendname string, friendkey *big.Int) {
-	sharedKey := c.keys.KeyMixing(friendkey)
-	c.friends[friendname] = sharedKey
-	websock.Send(c.ws, &websock.Message{Type: websock.KeyExchangeAccept, Message: friendname})
+	err := websock.Send(c.ws, &websock.Message{Type: websock.KeyExchangeAccept, Message: friendname})
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		sharedKey := c.keys.KeyMixing(friendkey)
+		c.friends[friendname] = sharedKey
+
+		delete(c.friendInvites, friendname)
+	}
 
 }
 
@@ -111,4 +118,29 @@ func (c *Client) inviteFriendHandler(friendname string) {
 		fmt.Println(err)
 	}
 
+}
+
+func (c *Client) declineFriendHandler(friendname string) {
+	err := websock.Send(c.ws, &websock.Message{Type: websock.KeyExchangeDecline, Message: friendname})
+	if err != nil {
+		fmt.Println(err)
+	} else {
+
+		delete(c.friendInvites, friendname)
+	}
+}
+
+func (c *Client) sendDirectMessage(friendname string, msg string) {
+	timestamp := util.NowMillis()
+	err := websock.Send(c.ws, &websock.Message{Type: websock.DirectMessage, Message: &websock.ChatMessage{
+		Sender:    c.username,
+		Receiver:  friendname,
+		Timestamp: timestamp,
+		Message:   util.EncryptDirectMessage(c.friends[friendname], msg),
+	}})
+	if err != nil {
+		fmt.Println("Message is now sent")
+	} else {
+		fmt.Println("Message is sent")
+	}
 }

@@ -48,11 +48,25 @@ func (c *Client) StartChatSession() {
 
 			sharedKey := c.keys.KeyMixing(friendKey)
 			c.friends[friendData.Friendname] = sharedKey
+			delete(c.friendInvites, friendData.Friendname)
 
 			fmt.Println("User:", friendData.Friendname, " accepted your invite")
 		case websock.KeyExchangeDecline:
 			friendName := msg.Message.(string)
+
 			fmt.Println("User: ", friendName, "declined your invite")
+		case websock.DirectMessage:
+			message := msg.Message.(*websock.ChatMessage)
+
+			if c.friends[message.Sender] != nil {
+
+				decrMsg := util.DecryptDirectMessage(c.friends[message.Sender], message.Message)
+
+				fmt.Println("[", message.Sender, " ", message.Timestamp, " : ", decrMsg)
+
+			} else {
+				fmt.Println("Can't decrypt entering message")
+			}
 		}
 	}
 

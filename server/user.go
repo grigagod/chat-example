@@ -30,6 +30,21 @@ func (users *Users) Get(ws *websocket.Conn) (user *User, ok bool) {
 	return
 }
 
+// GetByName gets the User of a connected websocket client by username
+//
+// Returns true on success and false on missing user
+func (users *Users) GetWSByName(username string) (ws *websocket.Conn, ok bool) {
+	users.Lock()
+	defer users.Unlock()
+
+	for ws, user := range users.data {
+		if user.Username == username {
+			return ws, true
+		}
+	}
+	return nil, false
+}
+
 // Remove deletes the connection between a websocket and a user
 func (users *Users) Remove(ws *websocket.Conn) (user *User, ok bool) {
 	users.Lock()
@@ -57,6 +72,15 @@ func (users *Users) Insert(ws *websocket.Conn, user *User) bool {
 	}
 	users.data[ws] = user
 	return true
+}
+
+// ForEach performs the given function on all stored users
+func (users *Users) ForEach(f func(*websocket.Conn, *User)) {
+	users.Lock()
+	defer users.Unlock()
+	for ws, user := range users.data {
+		f(ws, user)
+	}
 }
 
 // Len gets the amount of registered users
@@ -201,5 +225,40 @@ func (s *Server) SendExistingNotifications(ws *websocket.Conn) {
 		} else {
 			log.Println(err)
 		}
+	}
+
+	var messages []pdb.Message
+
+	s.Db.Where("receiver_name =? AND state =?", user.Username, pdb.MsgInitiated).Find(&messages)
+
+	for _, msg := range messages {
+		err := websock.Send(ws, &websock.Message{Type: websock.DirectMessage, Message: toChatMessage(&msg)})
+		if err == nil {
+			s.Db.Model(&msg).Update("state", pdb.MsgReceived)
+		}
+	}
+
+}
+
+func (s *Server) SendMessageIfActive(username string, msg *websock.Message) (ok bool) {
+	if ws, ok := s.Users.GetWSByName(username); !ok {
+		ok = false
+	} else {
+		err := websock.Send(ws, msg)
+		if err != nil {
+			ok = false
+		}
+
+		ok = true
+	}
+	return ok
+}
+
+func toChatMessage(msg *pdb.Message) *websock.ChatMessage {
+	return &websock.ChatMessage{
+		Sender:    msg.SenderName,
+		Receiver:  msg.ReceiverName,
+		Timestamp: msg.Timestamp,
+		Message:   msg.Message,
 	}
 }

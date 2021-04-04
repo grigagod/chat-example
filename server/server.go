@@ -123,6 +123,8 @@ func (s *Server) AuthedHandler(ws *websocket.Conn, pongCount *int64) {
 			s.ResponseKeyExchInit(ws, msg.Message.(string))
 		case websock.KeyExchangeAccept, websock.KeyExchangeDecline:
 			s.HandleKeyExchResponse(ws, msg)
+		case websock.DirectMessage:
+			s.HandleDirectMessage(ws, msg)
 		case websock.Pong:
 			log.Printf("Receive pong from %s", ws.Request().RemoteAddr)
 			atomic.AddInt64(pongCount, 1)

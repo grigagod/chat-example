@@ -32,7 +32,6 @@ func init() {
 	gob.Register(&ChatInfoMessage{})
 	gob.Register(&KeyExchangeMessage{})
 	gob.Register(&ChatMessage{})
-	gob.Register(&SendChatMessage{})
 }
 
 func marshalMessage(v interface{}) ([]byte, byte, error) {
@@ -91,9 +90,9 @@ func checkType(v interface{}, msgType MessageType) error {
 			return errors.New("Expected message type []byte")
 		}
 
-	case SendDirect:
-		if _, ok := v.(*SendChatMessage); !ok {
-			return errors.New("Expected message type *SendChatMessage")
+	case DirectMessage:
+		if _, ok := v.(*ChatMessage); !ok {
+			return errors.New("Expected message type *ChatMessage")
 		}
 	case KeyExchangeAccept:
 		_, ok1 := v.(string)

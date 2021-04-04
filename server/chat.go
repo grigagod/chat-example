@@ -40,6 +40,13 @@ func (s *Server) ResponseKeyExchInit(ws *websocket.Conn, receivername string) {
 				websock.Send(ws, &websock.Message{Type: websock.Error, Message: "Failed to create invite in db"})
 			} else {
 				websock.Send(ws, &websock.Message{Type: websock.KeyExchangeStatus, Message: "Invite  is sent"})
+
+				if ok := s.SendMessageIfActive(receivername, &websock.Message{Type: websock.KeyExchangeRequest, Message: &websock.KeyExchangeMessage{
+					Friendname:   sender.Username,
+					FriendPubKey: sender.PublicKey,
+				}}); ok {
+					go s.Db.Model(&notification).Update("state", pdb.Received)
+				}
 			}
 
 		}
@@ -57,10 +64,46 @@ func (s *Server) HandleKeyExchResponse(ws *websocket.Conn, msg *websock.Message)
 
 	s.Db.First(&sender, "username = ?", sendername)
 
+	var notification pdb.Notification
+
+	s.Db.First(&notification, "sender_name = ? AND receiver_name =?", sender.Username, receiver.Username)
 	switch msg.Type {
 	case websock.KeyExchangeAccept:
-		s.Db.Model(&pdb.Notification{}).Where("sender_name = ?", sender.Username).Where("receiver_name = ?", receiver.Username).Update("state", pdb.Accepted)
+		if ok := s.SendMessageIfActive(sendername, &websock.Message{Type: websock.KeyExchangeAccept, Message: &websock.KeyExchangeMessage{
+			Friendname:   receiver.Username,
+			FriendPubKey: receiver.PublicKey,
+		}}); ok {
+			go s.Db.Delete(&notification)
+
+		} else {
+
+			go s.Db.Model(&notification).Update("state", pdb.Accepted)
+		}
 	case websock.KeyExchangeDecline:
-		s.Db.Model(&pdb.Notification{}).Where("sender_name = ?", sender.Username).Where("receiver_name = ?", receiver.Username).Update("state", pdb.Declined)
+		if ok := s.SendMessageIfActive(sendername, &websock.Message{Type: websock.KeyExchangeDecline, Message: receiver.Username}); ok {
+			go s.Db.Delete(&notification)
+
+		} else {
+			go s.Db.Model(&notification).Update("state", pdb.Declined)
+		}
+	}
+}
+
+func (s *Server) HandleDirectMessage(ws *websocket.Conn, msg *websock.Message) {
+
+	chatMsg := msg.Message.(*websock.ChatMessage)
+	var sender pdb.User
+	var receiver pdb.User
+
+	s.Db.First(&sender, "username = ?", chatMsg.Sender)
+
+	s.Db.First(&receiver, "username = ?", chatMsg.Receiver)
+
+	message := pdb.NewMessage(&sender, &receiver, chatMsg.Timestamp, chatMsg.Message)
+
+	s.Db.Create(&message)
+
+	if ok := s.SendMessageIfActive(chatMsg.Receiver, msg); ok {
+		go s.Db.Model(&message).Update("state", pdb.MsgReceived)
 	}
 }

@@ -2,8 +2,10 @@ package util
 
 import (
 	"crypto/aes"
+	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha1"
+	"io"
 
 	//"encoding/pem"
 	//"errors"
@@ -57,6 +59,37 @@ func DecryptChallenge(pubKey *big.Int, msg []byte) []byte {
 
 	return authKey
 
+}
+
+func EncryptDirectMessage(shared_key *big.Int, msg string) []byte {
+	h := sha1.New()
+	encrKey := h.Sum(MarshalKey(shared_key))[:16]
+
+	block, _ := aes.NewCipher(encrKey)
+
+	encrMsg := make([]byte, block.BlockSize()+len(msg))
+
+	iv := encrMsg[:aes.BlockSize]
+	io.ReadFull(rand.Reader, iv)
+	stream := cipher.NewCFBEncrypter(block, iv)
+	stream.XORKeyStream(encrMsg[block.BlockSize():], []byte(msg))
+
+	return encrMsg
+}
+
+func DecryptDirectMessage(shared_key *big.Int, msg []byte) string {
+	h := sha1.New()
+	decrKey := h.Sum(MarshalKey(shared_key))[:16]
+
+	block, _ := aes.NewCipher(decrKey)
+
+	decrMsg := make([]byte, len(msg)-block.BlockSize())
+
+	iv := msg[:block.BlockSize()]
+	stream := cipher.NewCFBDecrypter(block, iv)
+	stream.XORKeyStream(decrMsg, msg[block.BlockSize():])
+
+	return string(decrMsg)
 }
 
 // NowMillis returns the current unix millisecond timestamp

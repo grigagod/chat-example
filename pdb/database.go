@@ -16,5 +16,6 @@ func CreateConnection(dsn string) (*gorm.DB, error) {
 
 	db.AutoMigrate(&User{})
 	db.AutoMigrate(&Notification{})
+	db.AutoMigrate(&Message{})
 	return db, nil
 }

@@ -136,7 +136,18 @@ func menu(c *Client) {
 					c.addToFriendsHandler(k, v)
 				}
 			}
-		// TODO: decline
+		case "/decline":
+			for k := range c.friendInvites {
+				if k == args[1] {
+					c.declineFriendHandler(k)
+				}
+			}
+		case "/direct":
+			for k := range c.friends {
+				if k == args[1] {
+					c.sendDirectMessage(args[1], strings.Join(args[2:], " "))
+				}
+			}
 		default:
 			fmt.Println("Unknown command")
 		}

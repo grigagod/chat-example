@@ -31,7 +31,7 @@ const (
 	KeyExchangeDecline
 
 	// SendDirect is sent when a client sends a direct message
-	SendDirect
+	DirectMessage
 	// DirectMessageReceived is sent by the server when another user receive a direct message
 	DirectMessageReceived
 
@@ -80,10 +80,7 @@ type User struct {
 // ChatMessage is used in DirectMessage, and by the server when notifying a client about a new chat message
 type ChatMessage struct {
 	Sender    string
+	Receiver  string
 	Timestamp int64
 	Message   []byte
-}
-
-type SendChatMessage struct {
-	EncryptedContent map[string][]byte
 }
