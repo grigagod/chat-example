@@ -117,7 +117,6 @@ func (c *Client) inviteFriendHandler(friendname string) {
 	if err != nil {
 		fmt.Println(err)
 	}
-
 }
 
 func (c *Client) declineFriendHandler(friendname string) {

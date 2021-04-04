@@ -6,5 +6,6 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.6 // indirect
 	golang.org/x/net v0.0.0-20210316092652-d523dce5a7f4
 	gorm.io/driver/postgres v1.0.8
+	gorm.io/driver/sqlite v1.1.4 // indirect
 	gorm.io/gorm v1.21.3
 )

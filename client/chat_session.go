@@ -38,6 +38,7 @@ func (c *Client) StartChatSession() {
 			c.friendInvites[keyExchMsg.Friendname] = friendKey
 
 			fmt.Println("New friend request from ", keyExchMsg.Friendname)
+			go c.dal.InsertIntoRequests(keyExchMsg.Friendname, keyExchMsg.FriendPubKey, c.username)
 		case websock.KeyExchangeAccept:
 			friendData := msg.Message.(*websock.KeyExchangeMessage)
 
@@ -51,6 +52,9 @@ func (c *Client) StartChatSession() {
 			delete(c.friendInvites, friendData.Friendname)
 
 			fmt.Println("User:", friendData.Friendname, " accepted your invite")
+
+			go c.dal.InsertIntoFriends(friendData.Friendname, sharedKey, c.username)
+			go c.dal.DeleteFromRequests(friendData.Friendname, c.username)
 		case websock.KeyExchangeDecline:
 			friendName := msg.Message.(string)
 

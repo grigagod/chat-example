@@ -67,6 +67,7 @@ func (wr *WSReader) GetNext() (*websock.Message, error) {
 type Client struct {
 	wsReader      *WSReader
 	ws            *websocket.Conn
+	dal           *DAL
 	keys          *crypto.Keys
 	authKey       []byte
 	username      string
@@ -156,6 +157,7 @@ func menu(c *Client) {
 
 func main() {
 	client := &Client{}
+	client.dal = createDAL("chat.db")
 
 	if client.Connect(serverStr) {
 		menu(client)

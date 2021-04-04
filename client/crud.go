@@ -1,56 +1,80 @@
 package main
 
 import (
-	"database/sql"
 	"math/big"
+	"os"
 
 	//"fmt"
+	"github.com/grigagod/chat-example/sdb"
 	_ "github.com/mattn/go-sqlite3"
+	"gorm.io/gorm"
 )
 
 type DAL struct {
-	conStr   string
-	Database *sql.DB
+	DSN string
+	Db  *gorm.DB
 }
 
-func (self *DAL) OpenConnection(database string) {
-	db, err := sql.Open("sqlite3", database)
+func createDAL(dns string) *DAL {
+	var dal = new(DAL)
+	dal.DSN = dns
+	db, err := sdb.CreateConnection(dal.DSN)
 	if err != nil {
-		panic(err)
+		os.Create(dal.DSN)
+		db, err := sdb.CreateConnection(dal.DSN)
+		if err != nil {
+			panic(err)
+		}
+		dal.Db = db
+		return dal
 	}
-	self.Database = db
+	dal.Db = db
+	return dal
 }
 
-func (self *DAL) CloseConnection() {
-	self.Database.Close()
+func (self *DAL) OpenConnection() {
 }
 
-func (self *DAL) InsertIntoFriends(friend_name string, shared_key *big.Int) {
-	self.OpenConnection("chat.db")
-	_, err := self.Database.Exec("insert into friends (friend_name, shared_key) values ($1, $2)",
-		friend_name, shared_key.Bytes())
-	if err != nil {
-		panic(err)
-	}
-	defer self.CloseConnection()
+func (dal *DAL) InsertIntoUsers(username string, privateKey *big.Int) error {
+	user := sdb.NewUser(username, privateKey.Bytes())
+	err := dal.Db.Create(&user).Error
+	return err
 }
 
-func (self *DAL) InsertIntoInvites(inviter_name string, public_key *big.Int) {
-	self.OpenConnection("chat.db")
-	_, err := self.Database.Exec("insert into invites (inviter_name, public_key) values ($1, $2)",
-		inviter_name, public_key.Bytes())
-	if err != nil {
-		panic(err)
+func (dal *DAL) GetUser(username string) (*sdb.User, error) {
+	var user sdb.User
+	if err := dal.Db.First(&user, "username = ?", username).Error; err != nil {
+		return nil, err
 	}
-	defer self.CloseConnection()
+	return &user, nil
+
 }
 
-func (self *DAL) SelectAllFrom(table string) *sql.Rows {
-	self.OpenConnection("chat.db")
-	result, err := self.Database.Query("select * from " + table)
-	if err != nil {
-		panic(err)
-	}
-	defer self.CloseConnection()
-	return result
+func (dal *DAL) GetRequestsList(username string) []*sdb.Request {
+	var requests []*sdb.Request
+	dal.Db.Where("receiver_name = ?", username).Find(&requests)
+	return requests
+}
+
+func (dal *DAL) GetFriendsList(username string) []*sdb.Friend {
+	var friends []*sdb.Friend
+	dal.Db.Where("owner_name = ?", username).Find(&friends)
+	return friends
+}
+
+func (dal *DAL) InsertIntoFriends(friendName string, sharedKey *big.Int, username string) error {
+	friend := sdb.NewFriend(friendName, sharedKey.Bytes(), username)
+	err := dal.Db.Create(&friend).Error
+	return err
+}
+
+func (dal *DAL) InsertIntoRequests(inviter_name string, public_key []byte, username string) error {
+	request := sdb.NewRequest(inviter_name, public_key, username)
+	err := dal.Db.Create(&request).Error
+	return err
+}
+
+func (dal *DAL) DeleteFromRequests(inviter_name string, username string) error {
+	err := dal.Db.Where("sender_name = ? AND receiver_name = ?", inviter_name, username).Delete(sdb.Request{}).Error
+	return err
 }
