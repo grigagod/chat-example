@@ -17,7 +17,6 @@ func (c *Client) StartChatSession() {
 	for _, friend := range c.dal.GetFriendsList(c.username) {
 		c.friends[friend.FriendName] = new(big.Int).SetBytes(friend.SharedKey) 
 	}
-
  	for _, request := range c.dal.GetRequestsList(c.username) {
  		c.friendInvites[request.SenderName] = new(big.Int).SetBytes(request.SenderKey)
  	}
@@ -75,7 +74,7 @@ func (c *Client) StartChatSession() {
 
 				decrMsg := util.DecryptDirectMessage(c.friends[message.Sender], message.Message)
 
-				fmt.Println("[", message.Sender, message.Timestamp, "] : ", decrMsg)
+				fmt.Println("[", message.Sender, "]: ", decrMsg)
 				go c.dal.InsertIntoMessages(message.Sender, message.Receiver, decrMsg, message.Timestamp)
 			} else {
 				fmt.Println("Can't decrypt entering message")
