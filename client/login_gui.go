@@ -3,7 +3,7 @@ package main
 // gui for log in page
 
 import (
-	"github.com/gdamore/tcell"
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
@@ -68,7 +68,7 @@ func (gui *LoginGUI) KeyHandler(ev *tcell.EventKey) *tcell.EventKey {
 		}
 
 		gui.app.SetFocus(gui.focusableElements[gui.focusIndex])
-	} else if ev.Key == tcell.KeyEnter {
+	} else if ev.Key() == tcell.KeyEnter {
 		switch gui.app.GetFocus() {
 		case gui.createBtn:
 			gui.createUserHandler(gui.serverInput.GetText(), gui.userNameInput.GetText())

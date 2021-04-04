@@ -4,6 +4,8 @@ import (
 	// "crypto/rsa"
 	// "errors"
 	"io/ioutil"
+	"log"
+
 	// "log"
 	// "os"
 	"bufio"
@@ -74,13 +76,15 @@ type Client struct {
 	users         []string
 	friends       map[string]*big.Int
 	friendInvites map[string]*big.Int
+	gui           *GUI
 }
 
 func (c *Client) Connect(server string) bool {
 	if c.wsReader == nil {
 		ws, err := websocket.Dial(server, "", "http://")
 		if err != nil {
-			fmt.Println("Error connecting to server")
+			log.Println("Error 01")
+			c.gui.ShowDialog("Error connecting to server", nil)
 			return false
 		}
 
@@ -156,9 +160,26 @@ func menu(c *Client) {
 }
 
 func main() {
+	f, _ := os.OpenFile("client_log.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	defer f.Close()
+	log.SetOutput(f)
+
 	client := &Client{}
 	client.dal = createDAL("chat.db")
 
+	guiConfig := &GUIConfig{
+		DefaultServerText:   serverStr,
+		createUserHandler:   client.createUserHandler,
+		loginUserHandler:    client.loginUserHandler,
+		inviteFriendHandler: client.inviteFriendHandler,
+	}
+
+	client.gui = NewGUI(guiConfig)
+
+	// Enter GUI event loop
+	if err := client.gui.app.Run(); err != nil {
+		log.Fatal(err)
+	}
 	if client.Connect(serverStr) {
 		menu(client)
 	}
