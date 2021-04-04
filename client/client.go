@@ -3,7 +3,7 @@ package main
 import (
 	// "crypto/rsa"
 	// "errors"
-	"io/ioutil"
+	// "io/ioutil"
 	// "log"
 	// "os"
 	"bufio"
@@ -14,7 +14,7 @@ import (
 	"strings"
 
 	"github.com/grigagod/chat-example/crypto"
-	"github.com/grigagod/chat-example/util"
+	//"github.com/grigagod/chat-example/util"
 	"github.com/grigagod/chat-example/websock"
 	"golang.org/x/net/websocket"
 )
@@ -96,21 +96,14 @@ func (c *Client) Connect(server string) bool {
 	return true
 }
 
-func savePrivKey(username string, privKey *big.Int) {
-	message := util.MarshalKey(privKey)
-	if err := ioutil.WriteFile(username+".chat", message, 0644); err != nil {
-		fmt.Println(err)
-	}
-}
-
 func menu(c *Client) {
 	reader := bufio.NewReader(os.Stdin)
 	for {
+		fmt.Print("> ")
 		text, _ := reader.ReadString('\n')
 		text = strings.Replace(text, "\n", "", -1)
 		args := strings.Split(text, " ")
 		cmd := strings.TrimSpace(args[0])
-
 		if cmd == "/exit" {
 			fmt.Println("You have been disconnected from the server")
 			break
@@ -129,6 +122,7 @@ func menu(c *Client) {
 			}
 		case "/cinfo":
 			c.chatInfoHandler()
+			fmt.Println()
 		case "/invite":
 			c.inviteFriendHandler(args[1])
 		case "/accept":
@@ -149,6 +143,10 @@ func menu(c *Client) {
 					c.sendDirectMessage(args[1], strings.Join(args[2:], " "))
 				}
 			}
+		case "":
+			break;
+		case "/friends":
+			fmt.Println(c.friends)
 		default:
 			fmt.Println("Unknown command")
 		}

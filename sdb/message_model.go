@@ -18,7 +18,7 @@ type Message struct {
 	Timestamp    int64
 }
 
-func newSentMessage(senderName string, receiverName string, message string, timestamp int64) *Message {
+func NewSentMessage(senderName string, receiverName string, message string, timestamp int64) *Message {
 	return &Message{
 		SenderName:   senderName,
 		ReceiverName: receiverName,
@@ -28,7 +28,7 @@ func newSentMessage(senderName string, receiverName string, message string, time
 	}
 }
 
-func newReceivedMessage(senderName string, receiverName string, message string, timestamp int64) *Message {
+func NewReceivedMessage(senderName string, receiverName string, message string, timestamp int64) *Message {
 	return &Message{
 		SenderName:   senderName,
 		ReceiverName: receiverName,

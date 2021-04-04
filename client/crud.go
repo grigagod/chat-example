@@ -32,9 +32,6 @@ func createDAL(dns string) *DAL {
 	return dal
 }
 
-func (self *DAL) OpenConnection() {
-}
-
 func (dal *DAL) InsertIntoUsers(username string, privateKey *big.Int) error {
 	user := sdb.NewUser(username, privateKey.Bytes())
 	err := dal.Db.Create(&user).Error
@@ -47,7 +44,6 @@ func (dal *DAL) GetUser(username string) (*sdb.User, error) {
 		return nil, err
 	}
 	return &user, nil
-
 }
 
 func (dal *DAL) GetRequestsList(username string) []*sdb.Request {
@@ -60,6 +56,18 @@ func (dal *DAL) GetFriendsList(username string) []*sdb.Friend {
 	var friends []*sdb.Friend
 	dal.Db.Where("owner_name = ?", username).Find(&friends)
 	return friends
+}
+
+func (dal *DAL) InsertIntoMessages(senderName string, receiverName string, message string, timestamp int64) error {
+	msg := sdb.NewReceivedMessage(senderName, receiverName, message, timestamp)
+	err := dal.Db.Create(&msg).Error
+	return err
+}
+
+func (dal *DAL) GetMessagesList(userName string, friendName string) []*sdb.Message {
+	var messages []*sdb.Message
+	dal.Db.Where("sender_name IN ? AND receiver_name IN ?", userName, friendName).Find(&messages)
+	return messages
 }
 
 func (dal *DAL) InsertIntoFriends(friendName string, sharedKey *big.Int, username string) error {

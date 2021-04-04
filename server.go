@@ -27,7 +27,7 @@ func checkEnvVars() {
 
 func main() {
 	os.Setenv("PORT", "8001")
-	os.Setenv("PQL_DSN", "host=localhost user=grigagod  dbname=chat port=5432 sslmode=disable TimeZone=Europe/Minsk")
+	os.Setenv("PQL_DSN", "host=localhost user=qiryl password=zxcv dbname=chat port=5432 TimeZone=Europe/Minsk")
 
 	checkEnvVars()
 
