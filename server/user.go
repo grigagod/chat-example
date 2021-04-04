@@ -221,7 +221,7 @@ func (s *Server) SendExistingNotifications(ws *websocket.Conn) {
 		}})
 
 		if err == nil {
-			s.Db.Model(&invitation).Update("state", pdb.Received)
+			s.Db.Model(&invitation).Where("state = ?", pdb.Initiated).Update("state", pdb.Received)
 		} else {
 			log.Println(err)
 		}
@@ -234,7 +234,7 @@ func (s *Server) SendExistingNotifications(ws *websocket.Conn) {
 	for _, msg := range messages {
 		err := websock.Send(ws, &websock.Message{Type: websock.DirectMessage, Message: toChatMessage(&msg)})
 		if err == nil {
-			s.Db.Model(&msg).Update("state", pdb.MsgReceived)
+			s.Db.Model(&msg).Where("state = ?", pdb.MsgInitiated).Update("state", pdb.MsgReceived)
 		}
 	}
 
