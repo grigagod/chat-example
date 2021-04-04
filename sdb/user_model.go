@@ -11,3 +11,4 @@ func NewUser(username string, privateKey []byte) *User {
 		PrivateKey: privateKey,
 	}
 }
+

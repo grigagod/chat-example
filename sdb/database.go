@@ -19,3 +19,9 @@ func CreateConnection(dsn string) (*gorm.DB, error) {
 
 	return db, nil
 }
+
+
+
+
+
+

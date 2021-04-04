@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	// "io/ioutil"
 	"math/big"
 
 	"github.com/grigagod/chat-example/crypto"
@@ -34,7 +34,7 @@ func (c *Client) createUserHandler(server string, username string) {
 	}
 
 	// Save private key to file
-	savePrivKey(username, keys.PrivateKey)
+	c.dal.InsertIntoUsers(username, keys.PrivateKey)
 
 	c.gui.ShowDialog("User created. You can now log in.", nil)
 }
@@ -46,14 +46,14 @@ func (c *Client) loginUserHandler(server string, username string) {
 		return
 	}
 
-	// Read private key from file
-	message, err := ioutil.ReadFile(username + ".chat")
+	// Read private key from chat.db
+	user, err := c.dal.GetUser(username)
 	if err != nil {
-		fmt.Println("Error reading privatekey.pem file")
+		fmt.Println("Error reading private key")
 		return
 	}
 
-	privKey, err := util.UnmarshalKey(message)
+	privKey, err := util.UnmarshalKey(user.PrivateKey)
 	if err != nil {
 		fmt.Println("Error parsing private key")
 		return
@@ -84,7 +84,7 @@ func (c *Client) loginUserHandler(server string, username string) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(res)
+	//fmt.Println(res)
 
 	// Login success, show the chat rooms GUI
 	c.authKey = decKey
@@ -106,10 +106,10 @@ func (c *Client) addToFriendsHandler(friendname string, friendkey *big.Int) {
 	} else {
 		sharedKey := c.keys.KeyMixing(friendkey)
 		c.friends[friendname] = sharedKey
-
+		c.dal.InsertIntoFriends(friendname, sharedKey, c.username)
 		delete(c.friendInvites, friendname)
 	}
-
+		
 }
 
 func (c *Client) inviteFriendHandler(friendname string) {
@@ -124,7 +124,6 @@ func (c *Client) declineFriendHandler(friendname string) {
 	if err != nil {
 		fmt.Println(err)
 	} else {
-
 		delete(c.friendInvites, friendname)
 	}
 }
