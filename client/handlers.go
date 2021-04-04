@@ -29,14 +29,14 @@ func (c *Client) createUserHandler(server string, username string) {
 
 	_, err := c.wsReader.GetNext()
 	if err != nil {
-		fmt.Println("Did not get a response from the server")
+		c.gui.ShowDialog("Did not get a response from the server", nil)
 		return
 	}
 
 	// Save private key to file
 	c.dal.InsertIntoUsers(username, keys.PrivateKey)
 
-	fmt.Println("User created. You can now log in.")
+	c.gui.ShowDialog("User created. You can now log in.", nil)
 }
 
 // Called when the user pressed the "login user" button
