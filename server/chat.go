@@ -1,6 +1,8 @@
 package server
 
 import (
+	"log"
+
 	"github.com/grigagod/chat-example/pdb"
 	"github.com/grigagod/chat-example/websock"
 	"golang.org/x/net/websocket"
@@ -36,7 +38,7 @@ func (s *Server) ResponseKeyExchInit(ws *websocket.Conn, receivername string) {
 		} else {
 			notification := pdb.NewNotification(&sender, &receiver)
 
-			if err := s.Db.Create(&notification).Error; err != nil {
+			if err := s.Db.Create(notification).Error; err != nil {
 				websock.Send(ws, &websock.Message{Type: websock.Error, Message: "Failed to create invite in db"})
 			} else {
 				websock.Send(ws, &websock.Message{Type: websock.KeyExchangeStatus, Message: "Invite  is sent"})
@@ -45,7 +47,8 @@ func (s *Server) ResponseKeyExchInit(ws *websocket.Conn, receivername string) {
 					Friendname:   sender.Username,
 					FriendPubKey: sender.PublicKey,
 				}}); ok {
-					go s.Db.Model(&notification).Update("state", pdb.Received)
+					go notification.UpdateNotificationState(s.Db, pdb.Received)
+
 				}
 			}
 
@@ -74,17 +77,15 @@ func (s *Server) HandleKeyExchResponse(ws *websocket.Conn, msg *websock.Message)
 			FriendPubKey: receiver.PublicKey,
 		}}); ok {
 			go s.Db.Delete(&notification)
-
+			log.Println("notification deleted")
 		} else {
-
-			go s.Db.Model(&notification).Update("state", pdb.Accepted)
+			go notification.UpdateNotificationState(s.Db, pdb.Accepted)
 		}
 	case websock.KeyExchangeDecline:
 		if ok := s.SendMessageIfActive(sendername, &websock.Message{Type: websock.KeyExchangeDecline, Message: receiver.Username}); ok {
 			go s.Db.Delete(&notification)
-
 		} else {
-			go s.Db.Model(&notification).Update("state", pdb.Declined)
+			go notification.UpdateNotificationState(s.Db, pdb.Declined)
 		}
 	}
 }
@@ -104,6 +105,7 @@ func (s *Server) HandleDirectMessage(ws *websocket.Conn, msg *websock.Message) {
 	s.Db.Create(&message)
 
 	if ok := s.SendMessageIfActive(chatMsg.Receiver, msg); ok {
-		go s.Db.Model(&message).Update("state", pdb.MsgReceived)
+		go message.UpdateMsgState(s.Db, pdb.MsgReceived)
+
 	}
 }

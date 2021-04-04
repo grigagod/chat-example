@@ -38,7 +38,8 @@ func (users *Users) GetWSByName(username string) (ws *websocket.Conn, ok bool) {
 	defer users.Unlock()
 
 	for ws, user := range users.data {
-		if user.Username == username {
+
+		if user != nil && user.Username == username {
 			return ws, true
 		}
 	}
@@ -180,7 +181,7 @@ func NewUser(db *gorm.DB, username string) (*User, []byte, error) {
 
 func (s *Server) SendExistingNotifications(ws *websocket.Conn) {
 	user, _ := s.Users.Get(ws)
-	var invites []pdb.Notification
+	var invites []*pdb.Notification
 	var receiver pdb.User
 
 	// Finding invites which is sent by this user
@@ -207,7 +208,7 @@ func (s *Server) SendExistingNotifications(ws *websocket.Conn) {
 	}
 
 	var sender pdb.User
-	var invitations []pdb.Notification
+	var invitations []*pdb.Notification
 	// Finding invite which is sent to this user
 
 	s.Db.Where("receiver_name = ? AND state = ? ", user.Username, pdb.Initiated).Find(&invitations)
@@ -221,37 +222,36 @@ func (s *Server) SendExistingNotifications(ws *websocket.Conn) {
 		}})
 
 		if err == nil {
-			s.Db.Model(&invitation).Where("state = ?", pdb.Initiated).Update("state", pdb.Received)
+			go invitation.UpdateNotificationState(s.Db, pdb.Received)
 		} else {
 			log.Println(err)
 		}
 	}
 
-	var messages []pdb.Message
+	var messages []*pdb.Message
 
 	s.Db.Where("receiver_name =? AND state =?", user.Username, pdb.MsgInitiated).Find(&messages)
 
 	for _, msg := range messages {
-		err := websock.Send(ws, &websock.Message{Type: websock.DirectMessage, Message: toChatMessage(&msg)})
+		err := websock.Send(ws, &websock.Message{Type: websock.DirectMessage, Message: toChatMessage(msg)})
 		if err == nil {
-			s.Db.Model(&msg).Where("state = ?", pdb.MsgInitiated).Update("state", pdb.MsgReceived)
+			go msg.UpdateMsgState(s.Db, pdb.MsgReceived)
 		}
 	}
 
 }
 
-func (s *Server) SendMessageIfActive(username string, msg *websock.Message) (ok bool) {
+func (s *Server) SendMessageIfActive(username string, msg *websock.Message) bool {
 	if ws, ok := s.Users.GetWSByName(username); !ok {
-		ok = false
+		return false
 	} else {
 		err := websock.Send(ws, msg)
 		if err != nil {
-			ok = false
+			return false
 		}
 
-		ok = true
+		return true
 	}
-	return ok
 }
 
 func toChatMessage(msg *pdb.Message) *websock.ChatMessage {

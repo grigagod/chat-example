@@ -1,5 +1,7 @@
 package pdb
 
+import "gorm.io/gorm"
+
 type MessageState int
 
 const (
@@ -27,4 +29,8 @@ func NewMessage(Sender *User, Receiver *User, timestamp int64, msg []byte) *Mess
 		Timestamp:    timestamp,
 		Message:      msg,
 	}
+}
+
+func (msg *Message) UpdateMsgState(db *gorm.DB, newState MessageState) {
+	db.Model(&Message{}).Where("sender_name = ? AND receiver_name = ? AND state = ? AND timestamp = ? ", msg.SenderName, msg.ReceiverName, msg.State, msg.Timestamp).Update("state", newState)
 }

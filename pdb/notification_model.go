@@ -1,5 +1,7 @@
 package pdb
 
+import "gorm.io/gorm"
+
 type NotificationState int
 
 const (
@@ -27,4 +29,8 @@ func NewNotification(sender *User, receiver *User) *Notification {
 		ReceiverName: receiver.Username,
 		State:        Initiated,
 	}
+}
+
+func (n *Notification) UpdateNotificationState(db *gorm.DB, newState NotificationState) {
+	db.Model(&Notification{}).Where("sender_name = ? AND receiver_name = ? AND state = ? ", n.SenderName, n.ReceiverName, n.State).Update("state", newState)
 }
