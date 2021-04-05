@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+
 	// "io/ioutil"
 	"math/big"
 
@@ -35,7 +37,6 @@ func (c *Client) createUserHandler(server string, username string) {
 
 	// Save private key to file
 	c.dal.InsertIntoUsers(username, keys.PrivateKey)
-
 	c.gui.ShowDialog("User created. You can now log in.", nil)
 }
 
@@ -49,13 +50,13 @@ func (c *Client) loginUserHandler(server string, username string) {
 	// Read private key from chat.db
 	user, err := c.dal.GetUser(username)
 	if err != nil {
-		fmt.Println("Error reading private key")
+		log.Println("Error reading private key")
 		return
 	}
 
 	privKey, err := util.UnmarshalKey(user.PrivateKey)
 	if err != nil {
-		fmt.Println("Error parsing private key")
+		log.Println("Error parsing private key")
 		return
 	}
 
@@ -68,20 +69,18 @@ func (c *Client) loginUserHandler(server string, username string) {
 		fmt.Println(err.Error())
 		return
 	}
-	fmt.Println("Got auth challenge")
+	log.Println("Got auth challenge")
 
 	// Try to decrypt auth challenge
 	keys := crypto.KeysFromPrivate(privKey)
 	decKey := util.DecryptChallenge(keys.PublicKey, res.Message.([]byte))
-
-	fmt.Println("DecryptChallenge in process")
 
 	// Send decrypted auth key to server
 	websock.Send(c.ws, &websock.Message{Type: websock.AuthChallengeResponse, Message: decKey})
 
 	// Check response from server
 	if res, err = c.wsReader.GetNext(); err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return
 	}
 	//fmt.Println(res)
@@ -90,8 +89,8 @@ func (c *Client) loginUserHandler(server string, username string) {
 	c.authKey = decKey
 	c.keys = keys
 	c.username = username
-	fmt.Println("Successfully logged in, starting session")
-	go c.StartChatSession()
+	c.gui.ShowChatGUI(c)
+
 }
 
 func (c *Client) chatInfoHandler() {
@@ -109,7 +108,7 @@ func (c *Client) addToFriendsHandler(friendname string, friendkey *big.Int) {
 		c.dal.InsertIntoFriends(friendname, sharedKey, c.username)
 		delete(c.friendInvites, friendname)
 	}
-		
+
 }
 
 func (c *Client) inviteFriendHandler(friendname string) {

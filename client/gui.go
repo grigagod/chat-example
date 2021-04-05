@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
@@ -34,10 +33,7 @@ func NewGUI(config *GUIConfig) *GUI {
 
 	g.chatGUI = &ChatGUI{GUI: g}
 	g.chatGUI.Create()
-
-	g.pages = tview.NewPages().AddPage("login", g.loginGUI.layout, true, true).
-		AddPage("chat", g.chatGUI.layout, true, false)
-
+	g.pages = tview.NewPages().AddPage("login", g.loginGUI.layout, true, true).AddPage("chat", g.chatGUI.layout, true, false)
 	g.app.SetRoot(g.pages, true).SetFocus(g.pages).SetInputCapture(g.loginGUI.KeyHandler)
 
 	return g
@@ -45,12 +41,12 @@ func NewGUI(config *GUIConfig) *GUI {
 
 func (g *GUI) ShowDialog(message string, onDismiss func()) {
 	modal := tview.NewModal()
-	modal.SetText(message).
-		AddButtons([]string{"Ok"}).
+	modal.SetText(message).AddButtons([]string{"Ok"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
-			g.pages.RemovePage("error")
-		}).
-		SetBackgroundColor(tcell.ColorDarkRed)
+			if buttonLabel == "Ok" {
+				g.pages.RemovePage("error")
+			}
+		})
 
 	if onDismiss != nil {
 		modal.SetDoneFunc(func(buttonIndex int, buttonLabel string) {
@@ -59,7 +55,13 @@ func (g *GUI) ShowDialog(message string, onDismiss func()) {
 			}
 		})
 	}
-
 	g.pages.AddPage("error", modal, true, true)
 	g.app.SetFocus(modal)
+}
+
+func (g *GUI) ShowChatGUI(c *Client) {
+	g.pages.SwitchToPage("chat")
+	g.app.SetInputCapture(g.chatGUI.KeyHandler)
+	g.ShowDialog("Welcome to chat", nil)
+	go c.StartChatSession()
 }

@@ -44,6 +44,9 @@ func (gui *ChatGUI) Create() {
 		AddItem(exitBtn, 2, 2, 1, 1, 0, 0, false)
 
 	gui.AddMsgInput()
+	gui.LeaveChatHandler = func() {
+		gui.app.Stop()
+	}
 }
 
 // AddMsgInput adds the input field for typing in a chat message to the layout, this is needed
@@ -68,7 +71,7 @@ func (gui *ChatGUI) MsgInputHandler(key tcell.Key) {
 	}
 }
 
-// Called when a chat room is selected in the list
+// Called when a friend is selected in the list
 func (gui *ChatGUI) onFriendSelected(index int, name, secText string, scut rune) {
 	gui.CurrentChatName = name
 

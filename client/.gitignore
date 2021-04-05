@@ -7,7 +7,7 @@
 # Unignore all dirs
 !*/
 
-
+*.txt
 *.chat
 *.log
 *.db

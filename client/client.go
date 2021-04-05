@@ -3,19 +3,18 @@ package main
 import (
 	// "crypto/rsa"
 	// "errors"
-	"io/ioutil"
 	"log"
 
 	// "log"
 	// "os"
-	"bufio"
+
 	"errors"
 	"fmt"
 	"math/big"
 	"os"
-	"strings"
 
 	"github.com/grigagod/chat-example/crypto"
+
 	//"github.com/grigagod/chat-example/util"
 	"github.com/grigagod/chat-example/websock"
 	"golang.org/x/net/websocket"
@@ -83,7 +82,6 @@ func (c *Client) Connect(server string) bool {
 	if c.wsReader == nil {
 		ws, err := websocket.Dial(server, "", "http://")
 		if err != nil {
-			log.Println("Error 01")
 			c.gui.ShowDialog("Error connecting to server", nil)
 			return false
 		}
@@ -98,63 +96,6 @@ func (c *Client) Connect(server string) bool {
 		go c.wsReader.Reader()
 	}
 	return true
-}
-
-func menu(c *Client) {
-	reader := bufio.NewReader(os.Stdin)
-	for {
-		fmt.Print("> ")
-		text, _ := reader.ReadString('\n')
-		text = strings.Replace(text, "\n", "", -1)
-		args := strings.Split(text, " ")
-		cmd := strings.TrimSpace(args[0])
-		if cmd == "/exit" {
-			fmt.Println("You have been disconnected from the server")
-			break
-		}
-
-		switch cmd {
-		case "/name":
-			c.username = args[1]
-			fmt.Println("Your username is : ", c.username)
-		case "/register":
-			c.createUserHandler(serverStr, c.username)
-		case "/login":
-			if args[1] != "" {
-				c.loginUserHandler(serverStr, args[1])
-
-			}
-		case "/cinfo":
-			c.chatInfoHandler()
-			fmt.Println()
-		case "/invite":
-			c.inviteFriendHandler(args[1])
-		case "/accept":
-			for k, v := range c.friendInvites {
-				if k == args[1] {
-					c.addToFriendsHandler(k, v)
-				}
-			}
-		case "/decline":
-			for k := range c.friendInvites {
-				if k == args[1] {
-					c.declineFriendHandler(k)
-				}
-			}
-		case "/direct":
-			for k := range c.friends {
-				if k == args[1] {
-					c.sendDirectMessage(args[1], strings.Join(args[2:], " "))
-				}
-			}
-		case "":
-			break;
-		case "/friends":
-			fmt.Println(c.friends)
-		default:
-			fmt.Println("Unknown command")
-		}
-	}
 }
 
 func main() {
@@ -178,8 +119,4 @@ func main() {
 	if err := client.gui.app.Run(); err != nil {
 		log.Fatal(err)
 	}
-	if client.Connect(serverStr) {
-		menu(client)
-	}
-
 }

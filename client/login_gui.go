@@ -72,8 +72,10 @@ func (gui *LoginGUI) KeyHandler(ev *tcell.EventKey) *tcell.EventKey {
 		switch gui.app.GetFocus() {
 		case gui.createBtn:
 			gui.createUserHandler(gui.serverInput.GetText(), gui.userNameInput.GetText())
+			return nil
 		case gui.loginBtn:
 			gui.loginUserHandler(gui.serverInput.GetText(), gui.userNameInput.GetText())
+			return nil
 		}
 	}
 
