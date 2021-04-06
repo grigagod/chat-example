@@ -3,14 +3,14 @@ package main
 import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
-	//"math/big"
+	"math/big"
 )
 
 // ChatGUI contains the widgets/state for the chat main window view
 type ChatGUI struct {
 	*GUI
 	SendDirectMessageHandler func(friendname string, msg string)
-	addToFriendsHandler		 func(friendname string, msg string)
+	addToFriendsHandler		 func(friendname string, friendKey *big.Int)
 	CurrentChatName          string
 	LeaveChatHandler         func()
 	// friends					 map[string]*big.Int // tmp
@@ -41,7 +41,7 @@ func (gui *ChatGUI) Create() {
 
 	sendBtn := tview.NewButton("(Enter) Send")
 	exitBtn := tview.NewButton("(Esc) Leave")
-	addFriendBtn = tview.NewButton("Add friend")
+	gui.addFriendBtn = tview.NewButton("Add friend")
 
 	gui.layout = tview.NewGrid()
 	gui.layout.SetRows(0, 3, 1).
@@ -105,7 +105,7 @@ func (gui *ChatGUI) KeyHandler(key *tcell.EventKey) *tcell.EventKey {
 	} else if key.Key() == tcell.KeyEnter {
 		switch gui.app.GetFocus() {
 		case gui.addFriendBtn:
-			gui.addToFriendsHandler()
+			//gui.addToFriendsHandler()
 		}
 	}
 	return key

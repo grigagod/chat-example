@@ -2,14 +2,15 @@ package main
 
 import (
 	"github.com/rivo/tview"
-	//"math/big"
+	"math/big"
 )
 
 type GUIConfig struct {
 	DefaultServerText   string
-	createUserHandler   func(server string, username string)
-	loginUserHandler    func(server string, username string)
+	createUserHandler   func(server, username string)
+	loginUserHandler    func(server, username string)
 	inviteFriendHandler func(friendname string)
+	addToFriendsHandler func(server string, friendKey *big.Int)
 }
 
 type GUI struct {
@@ -78,6 +79,6 @@ func (g *GUI) ShowChatGUI(c *Client) {
 
 func (g *GUI) ShowAddFriendGUI(c *Client) {
 	g.pages.SwitchToPage("addFriend")
-	g.app.SetInputCapture(g.AddFriendGUI.KeyHandler)
+	//g.app.SetInputCapture(g.AddFriendGUI.KeyHandler)
 }
 
