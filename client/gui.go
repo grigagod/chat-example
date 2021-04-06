@@ -84,7 +84,6 @@ func (g *GUI) ShowChatGUI(c *Client) {
 }
 
 func (g *GUI) ShowAddFriendGUI(c *Client) {
-
 	g.addToFriendGUI.users = c.users
 	g.addToFriendGUI.Create()
 	g.pages.AddPage("addFriend", g.addToFriendGUI.layout, false, false)
