@@ -95,7 +95,6 @@ func (c *Client) loginUserHandler(server string, username string) {
 
 func (c *Client) chatInfoHandler() {
 	websock.Send(c.ws, &websock.Message{Type: websock.ChatUsersInfo})
-
 }
 
 func (c *Client) addToFriendsHandler(friendname string, friendkey *big.Int) {
@@ -108,7 +107,6 @@ func (c *Client) addToFriendsHandler(friendname string, friendkey *big.Int) {
 		c.dal.InsertIntoFriends(friendname, sharedKey, c.username)
 		delete(c.friendInvites, friendname)
 	}
-
 }
 
 func (c *Client) inviteFriendHandler(friendname string) {

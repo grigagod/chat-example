@@ -1,20 +1,12 @@
 package main
 
 import (
-	// "crypto/rsa"
-	// "errors"
 	"log"
-
-	// "log"
-	// "os"
-
 	"errors"
 	"fmt"
 	"math/big"
 	"os"
-
 	"github.com/grigagod/chat-example/crypto"
-
 	//"github.com/grigagod/chat-example/util"
 	"github.com/grigagod/chat-example/websock"
 	"golang.org/x/net/websocket"
@@ -100,8 +92,8 @@ func (c *Client) Connect(server string) bool {
 
 func main() {
 	f, _ := os.OpenFile("client_log.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	defer f.Close()
 	log.SetOutput(f)
+	defer f.Close()
 
 	client := &Client{}
 	client.dal = createDAL("chat.db")
@@ -110,9 +102,7 @@ func main() {
 		DefaultServerText:   serverStr,
 		createUserHandler:   client.createUserHandler,
 		loginUserHandler:    client.loginUserHandler,
-		inviteFriendHandler: client.inviteFriendHandler,
-	}
-
+		inviteFriendHandler: client.inviteFriendHandler}
 	client.gui = NewGUI(guiConfig)
 
 	// Enter GUI event loop

@@ -3,26 +3,33 @@ package main
 import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	//"math/big"
 )
 
 // ChatGUI contains the widgets/state for the chat main window view
 type ChatGUI struct {
 	*GUI
 	SendDirectMessageHandler func(friendname string, msg string)
+	addToFriendsHandler		 func(friendname string, msg string)
 	CurrentChatName          string
 	LeaveChatHandler         func()
+	// friends					 map[string]*big.Int // tmp
 	layout                   *tview.Grid
 	friendList               *tview.List
 	msgView                  *tview.TextView
 	msgInput                 *tview.InputField
 	addFriendBtn             *tview.Button
 	checkInvitesBtn          *tview.Button
+
+	focusableElements 		 []tview.Primitive
+	focusedIndex      		 int
 }
 
 // Create initializes the widgets in the chat GUI
 func (gui *ChatGUI) Create() {
 	gui.friendList = tview.NewList()
-	gui.friendList.SetSelectedFunc(gui.onFriendSelected).
+	gui.friendList.
+		SetSelectedFunc(gui.onFriendSelected).
 		SetTitle("Friends").
 		SetBorder(true).
 		SetTitleAlign(tview.AlignLeft)
@@ -34,6 +41,7 @@ func (gui *ChatGUI) Create() {
 
 	sendBtn := tview.NewButton("(Enter) Send")
 	exitBtn := tview.NewButton("(Esc) Leave")
+	addFriendBtn = tview.NewButton("Add friend")
 
 	gui.layout = tview.NewGrid()
 	gui.layout.SetRows(0, 3, 1).
@@ -47,6 +55,12 @@ func (gui *ChatGUI) Create() {
 	gui.LeaveChatHandler = func() {
 		gui.app.Stop()
 	}
+
+	gui.focusableElements = []tview.Primitive{
+		gui.msgInput, 
+		gui.friendList}
+	gui.focusedIndex = 1
+
 }
 
 // AddMsgInput adds the input field for typing in a chat message to the layout, this is needed
@@ -80,7 +94,19 @@ func (gui *ChatGUI) onFriendSelected(index int, name, secText string, scut rune)
 // KeyHandler is the keyboard input handler for the chat rooms interface
 func (gui *ChatGUI) KeyHandler(key *tcell.EventKey) *tcell.EventKey {
 	if key.Key() == tcell.KeyEsc {
-		gui.LeaveChatHandler()
+		gui.app.Stop()
+	}
+	if key.Key() == tcell.KeyTab {
+		gui.focusedIndex++
+		if gui.focusedIndex == len(gui.focusableElements) {
+			gui.focusedIndex = 0
+		}
+		gui.app.SetFocus(gui.focusableElements[gui.focusedIndex])
+	} else if key.Key() == tcell.KeyEnter {
+		switch gui.app.GetFocus() {
+		case gui.addFriendBtn:
+			gui.addToFriendsHandler()
+		}
 	}
 	return key
 }
