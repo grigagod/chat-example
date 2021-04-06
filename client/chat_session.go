@@ -36,9 +36,15 @@ func (c *Client) StartChatSession() {
 			// normilize users
 			for idx, user := range c.users {
 				if user == c.username {
-					delete(c.users, idx)
+					c.users = append(c.users[:idx], c.users[idx+1:]...)
+				}
+				for friend, _ := range c.friends {
+					if user == friend {
+						c.users = append(c.users[:idx], c.users[idx+1:]...)
+					}
 				}
 			}
+			log.Println(c.users)
 			c.gui.ShowAddFriendGUI(c)
 		case websock.KeyExchangeStatus:
 			keyExchInfo := msg.Message.(string)

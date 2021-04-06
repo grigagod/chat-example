@@ -11,17 +11,19 @@ type AddToFriendGUI struct {
 	inviteFriendHandler func(username string)
 	layout 	  *tview.Flex
 	usersList *tview.List
-	addBtn 	  *tview.Button
+	users	  []string
 }
 
 
 func (gui *AddToFriendGUI) Create() {
-	gui.addBtn = tview.NewButton("Add")	
 	gui.usersList = tview.NewList()
+	for _, user := range gui.users {
+		gui.usersList.AddItem(user, "", 0, nil)
+	}
 	gui.usersList.
-		AddItem("asd", "", 0, nil).
 		SetBorder(true).
 		SetTitle("Users")
+
 
 	gui.layout = tview.NewFlex()
 	gui.layout.

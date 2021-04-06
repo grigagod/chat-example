@@ -44,12 +44,10 @@ func NewGUI(config *GUIConfig) *GUI {
 		GUI:				 g,
 		inviteFriendHandler: config.inviteFriendHandler,
 	}
-	g.addToFriendGUI.Create()
 
 	g.pages = tview.NewPages().
 		AddPage("login", g.loginGUI.layout, true, true).
-		AddPage("chat", g.chatGUI.layout, true, false).
-		AddPage("addFriend", g.addToFriendGUI.layout, true, false)
+		AddPage("chat", g.chatGUI.layout, true, false)
 
 	g.app.SetRoot(g.pages, true).
 		SetFocus(g.pages).
@@ -86,6 +84,11 @@ func (g *GUI) ShowChatGUI(c *Client) {
 }
 
 func (g *GUI) ShowAddFriendGUI(c *Client) {
+
+	g.addToFriendGUI.users = c.users
+	g.addToFriendGUI.Create()
+	g.pages.AddPage("addFriend", g.addToFriendGUI.layout, false, false)
+
 	g.pages.SwitchToPage("addFriend")
 	g.app.SetInputCapture(g.addToFriendGUI.KeyHandler)
 }
