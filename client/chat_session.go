@@ -47,7 +47,7 @@ func (c *Client) StartChatSession() {
 			c.gui.ShowAddFriendGUI(c)
 		case websock.KeyExchangeStatus:
 			keyExchInfo := msg.Message.(string)
-			fmt.Print(keyExchInfo)
+			c.gui.ShowDialog(keyExchInfo, nil)
 		case websock.KeyExchangeRequest:
 			keyExchMsg := msg.Message.(*websock.KeyExchangeMessage)
 
@@ -57,7 +57,7 @@ func (c *Client) StartChatSession() {
 			}
 			c.friendInvites[keyExchMsg.Friendname] = friendKey
 
-			fmt.Println("New friend request from ", keyExchMsg.Friendname)
+			log.Println("New friend request from ", keyExchMsg.Friendname)
 			go c.dal.InsertIntoRequests(keyExchMsg.Friendname, keyExchMsg.FriendPubKey, c.username)
 		case websock.KeyExchangeAccept:
 			friendData := msg.Message.(*websock.KeyExchangeMessage)
@@ -71,14 +71,14 @@ func (c *Client) StartChatSession() {
 			c.friends[friendData.Friendname] = sharedKey
 			delete(c.friendInvites, friendData.Friendname)
 
-			fmt.Println("User:", friendData.Friendname, " accepted your invite")
+			log.Println("User:", friendData.Friendname, " accepted your invite")
 
 			go c.dal.InsertIntoFriends(friendData.Friendname, sharedKey, c.username)
 			go c.dal.DeleteFromRequests(friendData.Friendname, c.username)
 		case websock.KeyExchangeDecline:
 			friendName := msg.Message.(string)
 
-			fmt.Println("User: ", friendName, "declined your invite")
+			log.Println("User: ", friendName, "declined your invite")
 		case websock.DirectMessage:
 			message := msg.Message.(*websock.ChatMessage)
 
@@ -86,7 +86,7 @@ func (c *Client) StartChatSession() {
 
 				decrMsg := util.DecryptDirectMessage(c.friends[message.Sender], message.Message)
 
-				fmt.Println("[", message.Sender, "]: ", decrMsg)
+				log.Println("[", message.Sender, "]: ", decrMsg)
 				go c.dal.InsertIntoMessages(message.Sender, message.Receiver, decrMsg, message.Timestamp)
 			} else {
 				log.Println("Can't decrypt entering message")

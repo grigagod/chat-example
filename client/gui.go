@@ -6,20 +6,20 @@ import (
 )
 
 type GUIConfig struct {
-	DefaultServerText   string
+	DefaultServerText string
 
 	createUserHandler   func(server, username string)
 	loginUserHandler    func(server, username string)
 	inviteFriendHandler func(friendname string)
 	//addToFriendsHandler func(server string, friendKey *big.Int)
-	chatInfoHandler	    func()
+	chatInfoHandler func()
 }
 
 type GUI struct {
-	app      	 *tview.Application
-	pages    	 *tview.Pages
-	loginGUI 	 *LoginGUI
-	chatGUI  	 *ChatGUI
+	app            *tview.Application
+	pages          *tview.Pages
+	loginGUI       *LoginGUI
+	chatGUI        *ChatGUI
 	addToFriendGUI *AddToFriendGUI
 }
 
@@ -36,12 +36,12 @@ func NewGUI(config *GUIConfig) *GUI {
 	g.loginGUI.Create()
 
 	g.chatGUI = &ChatGUI{
-		GUI: 		g,
+		GUI:             g,
 		chatInfoHandler: config.chatInfoHandler}
 	g.chatGUI.Create()
 
 	g.addToFriendGUI = &AddToFriendGUI{
-		GUI:				 g,
+		GUI:                 g,
 		inviteFriendHandler: config.inviteFriendHandler,
 	}
 
@@ -73,6 +73,7 @@ func (g *GUI) ShowDialog(message string, onDismiss func()) {
 		})
 	}
 	g.pages.AddPage("error", modal, true, true)
+	g.app.ForceDraw()
 	g.app.SetFocus(modal)
 }
 
@@ -85,10 +86,10 @@ func (g *GUI) ShowChatGUI(c *Client) {
 
 func (g *GUI) ShowAddFriendGUI(c *Client) {
 	g.addToFriendGUI.users = c.users
+
 	g.addToFriendGUI.Create()
-	g.pages.AddPage("addFriend", g.addToFriendGUI.layout, false, false)
-
-	g.pages.SwitchToPage("addFriend")
+	g.pages.AddPage("addFriend", g.addToFriendGUI.layout, true, true)
+	g.app.SetFocus(g.addToFriendGUI.layout)
 	g.app.SetInputCapture(g.addToFriendGUI.KeyHandler)
-}
 
+}

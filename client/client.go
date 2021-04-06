@@ -1,11 +1,12 @@
 package main
 
 import (
-	"log"
 	"errors"
 	"fmt"
+	"log"
 	"math/big"
 	"os"
+
 	"github.com/grigagod/chat-example/crypto"
 	//"github.com/grigagod/chat-example/util"
 	"github.com/grigagod/chat-example/websock"
@@ -96,14 +97,14 @@ func main() {
 	defer f.Close()
 
 	client := &Client{}
-	client.dal = createDAL("chat.db")
+	client.dal = createDAL("chat.db", log.New(f, "\r\n", log.LstdFlags))
 
 	guiConfig := &GUIConfig{
 		DefaultServerText:   serverStr,
 		createUserHandler:   client.createUserHandler,
 		loginUserHandler:    client.loginUserHandler,
 		inviteFriendHandler: client.inviteFriendHandler,
-		chatInfoHandler:	 client.chatInfoHandler}
+		chatInfoHandler:     client.chatInfoHandler}
 
 	client.gui = NewGUI(guiConfig)
 

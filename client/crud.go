@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"math/big"
 	"os"
 
@@ -15,13 +16,13 @@ type DAL struct {
 	Db  *gorm.DB
 }
 
-func createDAL(dns string) *DAL {
+func createDAL(dns string, logger *log.Logger) *DAL {
 	var dal = new(DAL)
 	dal.DSN = dns
-	db, err := sdb.CreateConnection(dal.DSN)
+	db, err := sdb.CreateConnection(dal.DSN, logger)
 	if err != nil {
 		os.Create(dal.DSN)
-		db, err := sdb.CreateConnection(dal.DSN)
+		db, err := sdb.CreateConnection(dal.DSN, logger)
 		if err != nil {
 			panic(err)
 		}
