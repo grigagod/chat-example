@@ -2,15 +2,17 @@ package main
 
 import (
 	"github.com/rivo/tview"
-	"math/big"
+	//"math/big"
 )
 
 type GUIConfig struct {
 	DefaultServerText   string
+
 	createUserHandler   func(server, username string)
 	loginUserHandler    func(server, username string)
 	inviteFriendHandler func(friendname string)
-	addToFriendsHandler func(server string, friendKey *big.Int)
+	//addToFriendsHandler func(server string, friendKey *big.Int)
+	chatInfoHandler	    func()
 }
 
 type GUI struct {
@@ -18,7 +20,7 @@ type GUI struct {
 	pages    	 *tview.Pages
 	loginGUI 	 *LoginGUI
 	chatGUI  	 *ChatGUI
-	AddFriendGUI *AddToFriendGUI
+	addToFriendGUI *AddToFriendGUI
 }
 
 func NewGUI(config *GUIConfig) *GUI {
@@ -35,13 +37,19 @@ func NewGUI(config *GUIConfig) *GUI {
 
 	g.chatGUI = &ChatGUI{
 		GUI: 		g,
-		addToFriendsHandler: config.addToFriendsHandler}
+		chatInfoHandler: config.chatInfoHandler}
 	g.chatGUI.Create()
+
+	g.addToFriendGUI = &AddToFriendGUI{
+		GUI:				 g,
+		inviteFriendHandler: config.inviteFriendHandler,
+	}
+	g.addToFriendGUI.Create()
 
 	g.pages = tview.NewPages().
 		AddPage("login", g.loginGUI.layout, true, true).
 		AddPage("chat", g.chatGUI.layout, true, false).
-		AddPage("addFriend", g.chatGUI.layout, true, false)
+		AddPage("addFriend", g.addToFriendGUI.layout, true, false)
 
 	g.app.SetRoot(g.pages, true).
 		SetFocus(g.pages).
@@ -79,6 +87,6 @@ func (g *GUI) ShowChatGUI(c *Client) {
 
 func (g *GUI) ShowAddFriendGUI(c *Client) {
 	g.pages.SwitchToPage("addFriend")
-	//g.app.SetInputCapture(g.AddFriendGUI.KeyHandler)
+	g.app.SetInputCapture(g.addToFriendGUI.KeyHandler)
 }
 

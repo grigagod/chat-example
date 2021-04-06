@@ -33,6 +33,12 @@ func (c *Client) StartChatSession() {
 		case websock.ChatInfoResponse:
 			chatInfo := msg.Message.(*websock.ChatInfoMessage)
 			c.users = chatInfo.Users
+			// normilize users
+			for idx, user := range c.users {
+				if user == c.username {
+					delete(c.users, idx)
+				}
+			}
 			c.gui.ShowAddFriendGUI(c)
 		case websock.KeyExchangeStatus:
 			keyExchInfo := msg.Message.(string)

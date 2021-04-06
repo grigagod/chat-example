@@ -103,7 +103,8 @@ func main() {
 		createUserHandler:   client.createUserHandler,
 		loginUserHandler:    client.loginUserHandler,
 		inviteFriendHandler: client.inviteFriendHandler,
-		addToFriendsHandler: client.addToFriendsHandler}
+		chatInfoHandler:	 client.chatInfoHandler}
+
 	client.gui = NewGUI(guiConfig)
 
 	// Enter GUI event loop

@@ -40,8 +40,6 @@ func (c *Client) createUserHandler(server string, username string) {
 	c.gui.ShowDialog("User created. You can now log in.", nil)
 }
 
-// Called when the user pressed the "login user" button
-// TODO: Refactor the huge function
 func (c *Client) loginUserHandler(server string, username string) {
 	if !c.Connect(server) {
 		return
@@ -50,13 +48,11 @@ func (c *Client) loginUserHandler(server string, username string) {
 	// Read private key from chat.db
 	user, err := c.dal.GetUser(username)
 	if err != nil {
-		log.Println("Error reading private key")
 		return
 	}
 
 	privKey, err := util.UnmarshalKey(user.PrivateKey)
 	if err != nil {
-		log.Println("Error parsing private key")
 		return
 	}
 
@@ -69,7 +65,6 @@ func (c *Client) loginUserHandler(server string, username string) {
 		fmt.Println(err.Error())
 		return
 	}
-	log.Println("Got auth challenge")
 
 	// Try to decrypt auth challenge
 	keys := crypto.KeysFromPrivate(privKey)
@@ -83,7 +78,6 @@ func (c *Client) loginUserHandler(server string, username string) {
 		log.Println(err)
 		return
 	}
-	//fmt.Println(res)
 
 	// Login success, show the chat rooms GUI
 	c.authKey = decKey
@@ -97,7 +91,8 @@ func (c *Client) chatInfoHandler() {
 	websock.Send(c.ws, &websock.Message{Type: websock.ChatUsersInfo})
 }
 
-func (c *Client) addToFriendsHandler(friendname string, friendkey *big.Int) {
+// addToFriendsHandler
+func (c *Client) acceptFriendHandler(friendname string, friendkey *big.Int) {
 	err := websock.Send(c.ws, &websock.Message{Type: websock.KeyExchangeAccept, Message: friendname})
 	if err != nil {
 		fmt.Println(err)

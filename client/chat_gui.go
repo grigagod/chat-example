@@ -9,10 +9,12 @@ import (
 // ChatGUI contains the widgets/state for the chat main window view
 type ChatGUI struct {
 	*GUI
+	
 	SendDirectMessageHandler func(friendname string, msg string)
 	addToFriendsHandler		 func(friendname string, friendKey *big.Int)
+	chatInfoHandler 		 func()
+	LeaveChatHandler		 func()
 	CurrentChatName          string
-	LeaveChatHandler         func()
 	// friends					 map[string]*big.Int // tmp
 	layout                   *tview.Grid
 	friendList               *tview.List
@@ -34,6 +36,8 @@ func (gui *ChatGUI) Create() {
 		SetBorder(true).
 		SetTitleAlign(tview.AlignLeft)
 
+	
+
 	gui.msgView = tview.NewTextView()
 	gui.msgView.SetDynamicColors(true).
 		SetBorder(true).
@@ -49,7 +53,8 @@ func (gui *ChatGUI) Create() {
 		AddItem(gui.msgView, 0, 0, 1, 4, 0, 0, false).
 		AddItem(gui.friendList, 0, 4, 2, 1, 0, 0, false).
 		AddItem(sendBtn, 2, 0, 1, 1, 0, 0, false).
-		AddItem(exitBtn, 2, 2, 1, 1, 0, 0, false)
+		AddItem(exitBtn, 2, 2, 1, 1, 0, 0, false).
+		AddItem(gui.addFriendBtn, 2, 4, 1, 1, 0, 0, false)
 
 	gui.AddMsgInput()
 	gui.LeaveChatHandler = func() {
@@ -58,7 +63,8 @@ func (gui *ChatGUI) Create() {
 
 	gui.focusableElements = []tview.Primitive{
 		gui.msgInput, 
-		gui.friendList}
+		gui.friendList,
+		gui.addFriendBtn}
 	gui.focusedIndex = 1
 
 }
@@ -105,7 +111,8 @@ func (gui *ChatGUI) KeyHandler(key *tcell.EventKey) *tcell.EventKey {
 	} else if key.Key() == tcell.KeyEnter {
 		switch gui.app.GetFocus() {
 		case gui.addFriendBtn:
-			//gui.addToFriendsHandler()
+			gui.chatInfoHandler()
+			return nil
 		}
 	}
 	return key
