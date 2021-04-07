@@ -5,7 +5,6 @@ import (
 	"log"
 
 	// "io/ioutil"
-	"math/big"
 
 	"github.com/grigagod/chat-example/crypto"
 	"github.com/grigagod/chat-example/util"
@@ -92,15 +91,15 @@ func (c *Client) chatInfoHandler() {
 }
 
 // addToFriendsHandler
-func (c *Client) acceptFriendHandler(friendname string, friendkey *big.Int) {
+func (c *Client) acceptFriendHandler(friendname string) {
 	err := websock.Send(c.ws, &websock.Message{Type: websock.KeyExchangeAccept, Message: friendname})
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		sharedKey := c.keys.KeyMixing(friendkey)
+		sharedKey := c.keys.KeyMixing(c.friendRequests[friendname])
 		c.friends[friendname] = sharedKey
 		c.dal.InsertIntoFriends(friendname, sharedKey, c.username)
-		delete(c.friendInvites, friendname)
+		delete(c.friendRequests, friendname)
 	}
 }
 
@@ -116,7 +115,7 @@ func (c *Client) declineFriendHandler(friendname string) {
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		delete(c.friendInvites, friendname)
+		delete(c.friendRequests, friendname)
 	}
 }
 

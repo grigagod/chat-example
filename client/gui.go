@@ -8,11 +8,13 @@ import (
 type GUIConfig struct {
 	DefaultServerText string
 
-	createUserHandler   func(server, username string)
-	loginUserHandler    func(server, username string)
-	inviteFriendHandler func(friendname string)
-	//addToFriendsHandler func(server string, friendKey *big.Int)
-	chatInfoHandler func()
+	createUserHandler           func(server, username string)
+	loginUserHandler            func(server, username string)
+	inviteFriendHandler         func(friendname string)
+	acceptFriendRequestHandler  func(friendname string)
+	declineFriendRequestHandler func(friendname string)
+	sendDirectMessageHandler    func(friendname string, msg string)
+	chatInfoHandler             func()
 }
 
 type GUI struct {
@@ -36,8 +38,12 @@ func NewGUI(config *GUIConfig) *GUI {
 	g.loginGUI.Create()
 
 	g.chatGUI = &ChatGUI{
-		GUI:             g,
-		chatInfoHandler: config.chatInfoHandler}
+		GUI:                         g,
+		chatInfoHandler:             config.chatInfoHandler,
+		acceptFriendRequestHandler:  config.acceptFriendRequestHandler,
+		declineFriendRequestHandler: config.declineFriendRequestHandler,
+		sendDirectMessageHandler:    config.sendDirectMessageHandler,
+	}
 	g.chatGUI.Create()
 
 	g.addToFriendGUI = &AddToFriendGUI{

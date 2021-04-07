@@ -59,16 +59,16 @@ func (wr *WSReader) GetNext() (*websock.Message, error) {
 }
 
 type Client struct {
-	wsReader      *WSReader
-	ws            *websocket.Conn
-	dal           *DAL
-	keys          *crypto.Keys
-	authKey       []byte
-	username      string
-	users         []string
-	friends       map[string]*big.Int
-	friendInvites map[string]*big.Int
-	gui           *GUI
+	wsReader       *WSReader
+	ws             *websocket.Conn
+	dal            *DAL
+	keys           *crypto.Keys
+	authKey        []byte
+	username       string
+	users          []string
+	friends        map[string]*big.Int
+	friendRequests map[string]*big.Int
+	gui            *GUI
 }
 
 func (c *Client) Connect(server string) bool {

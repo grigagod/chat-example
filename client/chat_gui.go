@@ -1,8 +1,6 @@
 package main
 
 import (
-	"math/big"
-
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -11,19 +9,20 @@ import (
 type ChatGUI struct {
 	*GUI
 
-	SendDirectMessageHandler func(friendname string, msg string)
-	addToFriendsHandler      func(friendname string, friendKey *big.Int)
-	chatInfoHandler          func()
-	LeaveChatHandler         func()
-	CurrentChatName          string
+	sendDirectMessageHandler    func(friendname string, msg string)
+	acceptFriendRequestHandler  func(friendname string)
+	declineFriendRequestHandler func(friendname string)
+	chatInfoHandler             func()
+	leaveChatHandler            func()
+	selectedFriendName          string
 	// friends					 map[string]*big.Int // tmp
-	layout          *tview.Grid
-	friendList      *tview.List
-	invitesList     *tview.List
-	msgView         *tview.TextView
-	msgInput        *tview.InputField
-	addFriendBtn    *tview.Button
-	checkInvitesBtn *tview.Button
+	layout           *tview.Grid
+	friendsListView  *tview.List
+	requestsListView *tview.List
+	msgView          *tview.TextView
+	msgInput         *tview.InputField
+	addFriendBtn     *tview.Button
+	checkInvitesBtn  *tview.Button
 
 	focusableElements []tview.Primitive
 	focusedIndex      int
@@ -31,8 +30,8 @@ type ChatGUI struct {
 
 // Create initializes the widgets in the chat GUI
 func (gui *ChatGUI) Create() {
-	gui.friendList = tview.NewList()
-	gui.friendList.
+	gui.friendsListView = tview.NewList()
+	gui.friendsListView.
 		SetSelectedFunc(gui.onFriendSelected).
 		SetTitle("Friends").
 		SetBorder(true).
@@ -43,8 +42,8 @@ func (gui *ChatGUI) Create() {
 		SetBorder(true).
 		SetTitle("Chat")
 
-	gui.invitesList = tview.NewList()
-	gui.invitesList.
+	gui.requestsListView = tview.NewList()
+	gui.requestsListView.
 		SetTitle("Invites").
 		SetBorder(true).
 		SetTitleAlign(tview.AlignCenter)
@@ -55,19 +54,19 @@ func (gui *ChatGUI) Create() {
 	gui.layout.SetRows(0, 6, 0, 3, 1).
 		SetColumns(20, 1, 20, 0, 30).
 		AddItem(gui.msgView, 0, 0, 3, 4, 0, 0, false).
-		AddItem(gui.friendList, 0, 4, 2, 1, 0, 0, false).
-		AddItem(gui.invitesList, 2, 4, 2, 1, 0, 0, false).
+		AddItem(gui.friendsListView, 0, 4, 2, 1, 0, 0, false).
+		AddItem(gui.requestsListView, 2, 4, 2, 1, 0, 0, false).
 		AddItem(gui.addFriendBtn, 4, 4, 1, 1, 0, 0, false)
 
 	gui.AddMsgInput()
-	gui.LeaveChatHandler = func() {
+	gui.leaveChatHandler = func() {
 		gui.app.Stop()
 	}
 
 	gui.focusableElements = []tview.Primitive{
 		gui.msgInput,
-		gui.friendList,
-		gui.invitesList,
+		gui.friendsListView,
+		gui.requestsListView,
 		gui.addFriendBtn,
 	}
 	gui.focusedIndex = 1
@@ -90,7 +89,7 @@ func (gui *ChatGUI) AddMsgInput() {
 // MsgInputHandler is the key handler for the chat message input field
 func (gui *ChatGUI) MsgInputHandler(key tcell.Key) {
 	if key == tcell.KeyEnter {
-		gui.SendDirectMessageHandler(gui.CurrentChatName, gui.msgInput.GetText())
+		gui.sendDirectMessageHandler(gui.selectedFriendName, gui.msgInput.GetText())
 		gui.layout.RemoveItem(gui.msgInput)
 		gui.AddMsgInput()
 	}
@@ -98,7 +97,7 @@ func (gui *ChatGUI) MsgInputHandler(key tcell.Key) {
 
 // Called when a friend is selected in the list
 func (gui *ChatGUI) onFriendSelected(index int, name, secText string, scut rune) {
-	gui.CurrentChatName = name
+	gui.selectedFriendName = name
 
 }
 
@@ -121,4 +120,16 @@ func (gui *ChatGUI) KeyHandler(key *tcell.EventKey) *tcell.EventKey {
 		}
 	}
 	return key
+}
+
+func (gui *ChatGUI) addToFriendList(friend string) {
+	gui.friendsListView.AddItem(friend, "", 0, nil)
+}
+
+func (gui *ChatGUI) addToRequestsList(request string) {
+	gui.requestsListView.AddItem(request, "", 0, nil)
+}
+
+func (gui *ChatGUI) removeCurrentRequest() {
+	gui.requestsListView.RemoveItem(gui.requestsListView.GetCurrentItem())
 }
