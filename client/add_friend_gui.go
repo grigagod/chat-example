@@ -38,13 +38,16 @@ func (gui *AddToFriendGUI) Create() {
 func (gui *AddToFriendGUI) onUserSelected(index int, name, secText string, scut rune) {
 	gui.app.SetInputCapture(gui.chatGUI.KeyHandler)
 	gui.pages.RemovePage("addFriend")
-
+	gui.app.ForceDraw()
 	gui.inviteFriendHandler(name)
 }
 
 func (gui *AddToFriendGUI) KeyHandler(key *tcell.EventKey) *tcell.EventKey {
 	if key.Key() == tcell.KeyEsc {
+		gui.pages.RemovePage("addFriend")
+		gui.app.SetFocus(gui.pages)
 		gui.app.SetInputCapture(gui.chatGUI.KeyHandler)
+		gui.app.ForceDraw()
 	}
 
 	return key

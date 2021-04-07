@@ -1,30 +1,32 @@
 package main
 
 import (
+	"math/big"
+
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
-	"math/big"
 )
 
 // ChatGUI contains the widgets/state for the chat main window view
 type ChatGUI struct {
 	*GUI
-	
+
 	SendDirectMessageHandler func(friendname string, msg string)
-	addToFriendsHandler		 func(friendname string, friendKey *big.Int)
-	chatInfoHandler 		 func()
-	LeaveChatHandler		 func()
+	addToFriendsHandler      func(friendname string, friendKey *big.Int)
+	chatInfoHandler          func()
+	LeaveChatHandler         func()
 	CurrentChatName          string
 	// friends					 map[string]*big.Int // tmp
-	layout                   *tview.Grid
-	friendList               *tview.List
-	msgView                  *tview.TextView
-	msgInput                 *tview.InputField
-	addFriendBtn             *tview.Button
-	checkInvitesBtn          *tview.Button
+	layout          *tview.Grid
+	friendList      *tview.List
+	invitesList     *tview.List
+	msgView         *tview.TextView
+	msgInput        *tview.InputField
+	addFriendBtn    *tview.Button
+	checkInvitesBtn *tview.Button
 
-	focusableElements 		 []tview.Primitive
-	focusedIndex      		 int
+	focusableElements []tview.Primitive
+	focusedIndex      int
 }
 
 // Create initializes the widgets in the chat GUI
@@ -36,25 +38,26 @@ func (gui *ChatGUI) Create() {
 		SetBorder(true).
 		SetTitleAlign(tview.AlignLeft)
 
-	
-
 	gui.msgView = tview.NewTextView()
 	gui.msgView.SetDynamicColors(true).
 		SetBorder(true).
 		SetTitle("Chat")
 
-	sendBtn := tview.NewButton("(Enter) Send")
-	exitBtn := tview.NewButton("(Esc) Leave")
+	gui.invitesList = tview.NewList()
+	gui.invitesList.
+		SetTitle("Invites").
+		SetBorder(true).
+		SetTitleAlign(tview.AlignCenter)
+
 	gui.addFriendBtn = tview.NewButton("Add friend")
 
 	gui.layout = tview.NewGrid()
-	gui.layout.SetRows(0, 3, 1).
+	gui.layout.SetRows(0, 6, 0, 3, 1).
 		SetColumns(20, 1, 20, 0, 30).
-		AddItem(gui.msgView, 0, 0, 1, 4, 0, 0, false).
+		AddItem(gui.msgView, 0, 0, 3, 4, 0, 0, false).
 		AddItem(gui.friendList, 0, 4, 2, 1, 0, 0, false).
-		AddItem(sendBtn, 2, 0, 1, 1, 0, 0, false).
-		AddItem(exitBtn, 2, 2, 1, 1, 0, 0, false).
-		AddItem(gui.addFriendBtn, 2, 4, 1, 1, 0, 0, false)
+		AddItem(gui.invitesList, 2, 4, 2, 1, 0, 0, false).
+		AddItem(gui.addFriendBtn, 4, 4, 1, 1, 0, 0, false)
 
 	gui.AddMsgInput()
 	gui.LeaveChatHandler = func() {
@@ -62,9 +65,11 @@ func (gui *ChatGUI) Create() {
 	}
 
 	gui.focusableElements = []tview.Primitive{
-		gui.msgInput, 
+		gui.msgInput,
 		gui.friendList,
-		gui.addFriendBtn}
+		gui.invitesList,
+		gui.addFriendBtn,
+	}
 	gui.focusedIndex = 1
 
 }
@@ -78,7 +83,7 @@ func (gui *ChatGUI) AddMsgInput() {
 		SetTitle("Message").
 		SetTitleAlign(tview.AlignLeft)
 
-	gui.layout.AddItem(gui.msgInput, 1, 0, 1, 4, 0, 0, true)
+	gui.layout.AddItem(gui.msgInput, 3, 0, 1, 4, 0, 0, true)
 	gui.app.SetFocus(gui.layout)
 }
 

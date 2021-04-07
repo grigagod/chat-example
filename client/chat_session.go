@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"math/big"
 
@@ -25,8 +24,8 @@ func (c *Client) StartChatSession() {
 	for {
 		msg, err := c.wsReader.GetNext()
 		if err != nil {
-			fmt.Println(err)
-			break
+			c.gui.ShowDialog((err.Error()), nil)
+			continue
 		}
 
 		switch msg.Type {

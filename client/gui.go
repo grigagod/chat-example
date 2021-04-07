@@ -73,8 +73,8 @@ func (g *GUI) ShowDialog(message string, onDismiss func()) {
 		})
 	}
 	g.pages.AddPage("error", modal, true, true)
-	g.app.ForceDraw()
 	g.app.SetFocus(modal)
+	g.app.ForceDraw()
 }
 
 func (g *GUI) ShowChatGUI(c *Client) {
@@ -89,7 +89,6 @@ func (g *GUI) ShowAddFriendGUI(c *Client) {
 
 	g.addToFriendGUI.Create()
 	g.pages.AddPage("addFriend", g.addToFriendGUI.layout, true, true)
-	g.app.SetFocus(g.addToFriendGUI.layout)
 	g.app.SetInputCapture(g.addToFriendGUI.KeyHandler)
-
+	g.app.ForceDraw()
 }
