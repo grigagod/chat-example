@@ -128,6 +128,8 @@ func (c *Client) sendDirectMessage(friendname string, msg string) {
 		Timestamp: timestamp,
 		Message:   util.EncryptDirectMessage(c.friends[friendname], msg),
 	}})
+	c.dal.InsertIntoMessages(c.username, friendname, msg, timestamp)
+	//c.gui.chatGUI.
 	if err != nil {
 		fmt.Println("Message is now sent")
 	} else {

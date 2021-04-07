@@ -67,7 +67,7 @@ func (dal *DAL) InsertIntoMessages(senderName string, receiverName string, messa
 
 func (dal *DAL) GetMessagesList(userName string, friendName string) []*sdb.Message {
 	var messages []*sdb.Message
-	dal.Db.Where("sender_name IN ? AND receiver_name IN ?", userName, friendName).Find(&messages)
+	dal.Db.Where("sender_name IN ? AND receiver_name IN ?", []string{userName, friendName}).Find(&messages)
 	return messages
 }
 

@@ -78,7 +78,6 @@ func (gui *ChatGUI) Create() {
 
 }
 
-
 // AddMsgInput adds the input field for typing in a chat message to the layout, this is needed
 // because to clear an InputField in tview, we have to create a new InputField, so this code needs to run often
 func (gui *ChatGUI) AddMsgInput() {
@@ -88,15 +87,22 @@ func (gui *ChatGUI) AddMsgInput() {
 		SetTitle("Message").
 		SetTitleAlign(tview.AlignLeft)
 
+	gui.focusableElements = append(gui.focusableElements, gui.msgInput)
+
 	gui.layout.AddItem(gui.msgInput, 3, 0, 1, 4, 0, 0, true)
 	gui.app.SetFocus(gui.layout)
 }
 
 // MsgInputHandler is the key handler for the chat message input field
 func (gui *ChatGUI) MsgInputHandler(key tcell.Key) {
-	if key == tcell.KeyEnter {
+	if key == tcell.KeyEnter && gui.selectedFriendName != "" {
 		gui.sendDirectMessageHandler(gui.selectedFriendName, gui.msgInput.GetText())
 		gui.layout.RemoveItem(gui.msgInput)
+		for idx, primitive := range gui.focusableElements {
+			if primitive == gui.msgInput {
+				gui.focusableElements = append(gui.focusableElements[:idx], gui.focusableElements[idx+1:]...)
+			}
+		}
 		gui.AddMsgInput()
 	}
 }
@@ -104,7 +110,7 @@ func (gui *ChatGUI) MsgInputHandler(key tcell.Key) {
 // Called when a friend is selected in the list
 func (gui *ChatGUI) onFriendSelected(index int, name, secText string, scut rune) {
 	gui.selectedFriendName = name
-
+	log.Println(name)
 }
 
 func (gui *ChatGUI) onInviteSelected(index int, name, secText string, scut rune) {
