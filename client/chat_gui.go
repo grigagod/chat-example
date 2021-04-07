@@ -3,6 +3,8 @@ package main
 import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"time"
+	"log"
 )
 
 // ChatGUI contains the widgets/state for the chat main window view
@@ -16,6 +18,8 @@ type ChatGUI struct {
 	leaveChatHandler            func()
 	selectedFriendName          string
 	// friends					 map[string]*big.Int // tmp
+	invitesListUpdater			*time.Ticker
+
 	layout           *tview.Grid
 	friendsListView  *tview.List
 	requestsListView *tview.List
@@ -44,6 +48,7 @@ func (gui *ChatGUI) Create() {
 
 	gui.requestsListView = tview.NewList()
 	gui.requestsListView.
+		SetSelectedFunc(gui.onInviteSelected).
 		SetTitle("Invites").
 		SetBorder(true).
 		SetTitleAlign(tview.AlignCenter)
@@ -73,6 +78,7 @@ func (gui *ChatGUI) Create() {
 
 }
 
+
 // AddMsgInput adds the input field for typing in a chat message to the layout, this is needed
 // because to clear an InputField in tview, we have to create a new InputField, so this code needs to run often
 func (gui *ChatGUI) AddMsgInput() {
@@ -99,6 +105,12 @@ func (gui *ChatGUI) MsgInputHandler(key tcell.Key) {
 func (gui *ChatGUI) onFriendSelected(index int, name, secText string, scut rune) {
 	gui.selectedFriendName = name
 
+}
+
+func (gui *ChatGUI) onInviteSelected(index int, name, secText string, scut rune) {
+	gui.acceptFriendRequestHandler(name)
+	gui.removeCurrentRequest()
+	log.Println(name)
 }
 
 // KeyHandler is the keyboard input handler for the chat rooms interface

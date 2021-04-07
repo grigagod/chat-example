@@ -34,16 +34,24 @@ func (c *Client) StartChatSession() {
 		case websock.ChatInfoResponse:
 			chatInfo := msg.Message.(*websock.ChatInfoMessage)
 			c.users = chatInfo.Users
+				
 			for idx, user := range c.users {
 				if user == c.username {
 					c.users = append(c.users[:idx], c.users[idx+1:]...)
 				}
+			}
+
+			i := 0
+			for _, user := range c.users {
 				for friend, _ := range c.friends {
-					if user == friend {
-						c.users = append(c.users[:idx], c.users[idx+1:]...)
+					if user != friend {
+						c.users[i] = user
+						i++
 					}
 				}
 			}
+			c.users = c.users[:i]	
+			
 			//log.Println(c.users)
 			c.gui.ShowAddFriendGUI(c)
 		case websock.KeyExchangeStatus:
@@ -74,8 +82,8 @@ func (c *Client) StartChatSession() {
 			sharedKey := c.keys.KeyMixing(friendKey)
 			c.friends[friendData.Friendname] = sharedKey
 			delete(c.friendRequests, friendData.Friendname)
-
 			c.gui.chatGUI.addToFriendList(friendData.Friendname)
+
 			go c.dal.InsertIntoFriends(friendData.Friendname, sharedKey, c.username)
 			go c.dal.DeleteFromRequests(friendData.Friendname, c.username)
 		case websock.KeyExchangeDecline:

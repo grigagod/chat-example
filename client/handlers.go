@@ -90,7 +90,6 @@ func (c *Client) chatInfoHandler() {
 	websock.Send(c.ws, &websock.Message{Type: websock.ChatUsersInfo})
 }
 
-// addToFriendsHandler
 func (c *Client) acceptFriendHandler(friendname string) {
 	err := websock.Send(c.ws, &websock.Message{Type: websock.KeyExchangeAccept, Message: friendname})
 	if err != nil {
@@ -99,6 +98,8 @@ func (c *Client) acceptFriendHandler(friendname string) {
 		sharedKey := c.keys.KeyMixing(c.friendRequests[friendname])
 		c.friends[friendname] = sharedKey
 		c.dal.InsertIntoFriends(friendname, sharedKey, c.username)
+		c.dal.DeleteFromRequests(friendname, c.username)
+		c.gui.chatGUI.addToFriendList(friendname)
 		delete(c.friendRequests, friendname)
 	}
 }

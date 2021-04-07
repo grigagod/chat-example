@@ -104,7 +104,9 @@ func main() {
 		createUserHandler:   client.createUserHandler,
 		loginUserHandler:    client.loginUserHandler,
 		inviteFriendHandler: client.inviteFriendHandler,
-		chatInfoHandler:     client.chatInfoHandler}
+		chatInfoHandler:     client.chatInfoHandler,
+		acceptFriendRequestHandler:	client.acceptFriendHandler}
+
 
 	client.gui = NewGUI(guiConfig)
 

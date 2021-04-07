@@ -88,6 +88,7 @@ func (g *GUI) ShowChatGUI(c *Client) {
 	g.app.SetInputCapture(g.chatGUI.KeyHandler)
 	g.ShowDialog("Welcome to chat", nil)
 	go c.StartChatSession()
+	//go g.ChatGUI.updatedInvitesList()
 }
 
 func (g *GUI) ShowAddFriendGUI(c *Client) {

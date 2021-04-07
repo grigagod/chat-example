@@ -22,8 +22,10 @@ func (gui *AddToFriendGUI) Create() {
 		SetSelectedFunc(gui.onUserSelected).
 		SetBorder(true).
 		SetTitle("Users")
-	for _, user := range gui.users {
-		gui.usersList.AddItem(user, "", 0, nil)
+	if len(gui.users) != 0 {
+		for _, user := range gui.users {
+			gui.usersList.AddItem(user, "", 0, nil)
+		}
 	}
 
 	gui.layout = tview.NewFlex().SetFullScreen(true).
