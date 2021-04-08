@@ -93,10 +93,9 @@ func (c *Client) StartChatSession() {
 			message := msg.Message.(*websock.ChatMessage)
 
 			if c.friends[message.Sender] != nil {
-
 				decrMsg := util.DecryptDirectMessage(c.friends[message.Sender], message.Message)
-
-				log.Println("[", message.Sender, "]: ", decrMsg)
+				// log.Println("[", message.Sender, "]: ", decrMsg)
+				c.gui.chatGUI.DisplayMessage(message.Sender, decrMsg, message.Timestamp)
 				go c.dal.InsertIntoMessages(message.Sender, message.Receiver, decrMsg, message.Timestamp)
 			} else {
 				log.Println("Can't decrypt entering message")

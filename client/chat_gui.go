@@ -5,6 +5,8 @@ import (
 	"github.com/rivo/tview"
 	"time"
 	"log"
+	"bytes"
+	"fmt"
 )
 
 // ChatGUI contains the widgets/state for the chat main window view
@@ -106,6 +108,29 @@ func (gui *ChatGUI) MsgInputHandler(key tcell.Key) {
 		gui.AddMsgInput()
 	}
 }
+
+func formatChatMessage(sender, message string, timestamp int64) []byte {
+	var buf bytes.Buffer
+
+	tm := time.Unix(timestamp/1000, 0)
+	buf.WriteString(fmt.Sprintf("[dimgray]%02d-%02d %02d:%02d[white]", tm.Day(), tm.Month(), tm.Hour(), tm.Minute()))
+	buf.WriteString(" [blue]<")
+	buf.WriteString(string(sender))
+	buf.WriteString("> [white]")
+	buf.WriteString(message)
+	buf.WriteRune('\n')
+
+	return buf.Bytes()
+}
+
+func (gui *ChatGUI) DisplayMessage(username, msg string, timestamp int64) {
+	gui.app.QueueUpdate(func() {
+		fmtMsg := formatChatMessage(username, msg, timestamp)
+		gui.msgView.Write(fmtMsg)
+		gui.app.Draw()
+	})
+}
+
 
 // Called when a friend is selected in the list
 func (gui *ChatGUI) onFriendSelected(index int, name, secText string, scut rune) {
