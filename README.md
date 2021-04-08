@@ -30,15 +30,12 @@
 Для получения shared-secret мы будем использовать протокол [DiffieHellman](https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange).
 
 ### Защищенные сообщения
-Используем shared-secret для симметричного шифрования сообщений при помощи [AES](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard).
-Для проверки целостности и подлинности сообщений будем использовать [HMAC](https://en.wikipedia.org/wiki/HMAC).
-
+Используем  hash от shared-secret для симметричного шифрования сообщений при помощи [AES](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard).
 
 ## Технические детали
 
 ## Используемые технологии
 
-* Python для клиентской части
- * Golang для серверной части (этот выбор обусловлен простотой языка
+ * Golang для серверной и клиентской части (этот выбор обусловлен простотой языка
  и его узкой специализацией )
- * PostgreSQL для серверной БД
+ * PostgreSQL для серверной БД, SQLite3 для клиентской(более легковесна)
