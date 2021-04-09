@@ -47,15 +47,15 @@ func (dal *DAL) GetUser(username string) (*sdb.User, error) {
 	return &user, nil
 }
 
-func (dal *DAL) GetRequestsList(username string) []*sdb.Request {
+func (c *Client) GetRequestsList() []*sdb.Request {
 	var requests []*sdb.Request
-	dal.Db.Where("receiver_name = ?", username).Find(&requests)
+	c.dal.Db.Where("receiver_name = ?", c.username).Find(&requests)
 	return requests
 }
 
-func (dal *DAL) GetFriendsList(username string) []*sdb.Friend {
+func (c *Client) GetFriendsList() []*sdb.Friend {
 	var friends []*sdb.Friend
-	dal.Db.Where("owner_name = ?", username).Find(&friends)
+	c.dal.Db.Where("owner_name = ?", c.username).Find(&friends)
 	return friends
 }
 
@@ -65,25 +65,25 @@ func (dal *DAL) InsertIntoMessages(senderName string, receiverName string, messa
 	return err
 }
 
-func (dal *DAL) GetMessagesList(userName string, friendName string) []*sdb.Message {
+func (c *Client) GetMessagesList(friendname string) []*sdb.Message {
 	var messages []*sdb.Message
-	dal.Db.Where("sender_name IN ? AND receiver_name IN ?", []string{userName, friendName}).Find(&messages)
+	c.dal.Db.Where("sender_name IN ? AND receiver_name IN ?", []string{c.username, friendname}, []string{c.username, friendname}).Order("timestamp").Find(&messages)
 	return messages
 }
 
-func (dal *DAL) InsertIntoFriends(friendName string, sharedKey *big.Int, username string) error {
-	friend := sdb.NewFriend(friendName, sharedKey.Bytes(), username)
-	err := dal.Db.Create(&friend).Error
+func (c *Client) InsertIntoFriends(friendName string, sharedKey *big.Int) error {
+	friend := sdb.NewFriend(friendName, sharedKey.Bytes(), c.username)
+	err := c.dal.Db.Create(&friend).Error
 	return err
 }
 
-func (dal *DAL) InsertIntoRequests(inviter_name string, public_key []byte, username string) error {
-	request := sdb.NewRequest(inviter_name, public_key, username)
-	err := dal.Db.Create(&request).Error
+func (c *Client) InsertIntoRequests(inviter_name string, public_key []byte) error {
+	request := sdb.NewRequest(inviter_name, public_key, c.username)
+	err := c.dal.Db.Create(&request).Error
 	return err
 }
 
-func (dal *DAL) DeleteFromRequests(inviter_name string, username string) error {
-	err := dal.Db.Where("sender_name = ? AND receiver_name = ?", inviter_name, username).Delete(sdb.Request{}).Error
+func (c *Client) DeleteFromRequests(inviter_name string) error {
+	err := c.dal.Db.Where("sender_name = ? AND receiver_name = ?", inviter_name, c.username).Delete(sdb.Request{}).Error
 	return err
 }

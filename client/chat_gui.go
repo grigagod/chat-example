@@ -1,12 +1,14 @@
 package main
 
 import (
-	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
-	"time"
-	"log"
 	"bytes"
 	"fmt"
+	"log"
+	"time"
+
+	"github.com/gdamore/tcell/v2"
+	"github.com/grigagod/chat-example/sdb"
+	"github.com/rivo/tview"
 )
 
 // ChatGUI contains the widgets/state for the chat main window view
@@ -19,8 +21,9 @@ type ChatGUI struct {
 	chatInfoHandler             func()
 	leaveChatHandler            func()
 	selectedFriendName          string
+	getMsgList                  func(friendname string) []*sdb.Message
 	// friends					 map[string]*big.Int // tmp
-	invitesListUpdater			*time.Ticker
+	invitesListUpdater *time.Ticker
 
 	layout           *tview.Grid
 	friendsListView  *tview.List
@@ -50,8 +53,8 @@ func (gui *ChatGUI) Create() {
 
 	gui.requestsListView = tview.NewList()
 	gui.requestsListView.
-		SetSelectedFunc(gui.onInviteSelected).
-		SetTitle("Invites").
+		SetSelectedFunc(gui.onRequestSelected).
+		SetTitle("Requests").
 		SetBorder(true).
 		SetTitleAlign(tview.AlignCenter)
 
@@ -65,17 +68,17 @@ func (gui *ChatGUI) Create() {
 		AddItem(gui.requestsListView, 2, 4, 2, 1, 0, 0, false).
 		AddItem(gui.addFriendBtn, 4, 4, 1, 1, 0, 0, false)
 
-	gui.AddMsgInput()
 	gui.leaveChatHandler = func() {
 		gui.app.Stop()
 	}
 
 	gui.focusableElements = []tview.Primitive{
-		gui.msgInput,
 		gui.friendsListView,
 		gui.requestsListView,
 		gui.addFriendBtn,
 	}
+
+	gui.AddMsgInput()
 	gui.focusedIndex = 1
 
 }
@@ -92,26 +95,25 @@ func (gui *ChatGUI) AddMsgInput() {
 	gui.focusableElements = append(gui.focusableElements, gui.msgInput)
 
 	gui.layout.AddItem(gui.msgInput, 3, 0, 1, 4, 0, 0, true)
-	gui.app.SetFocus(gui.layout)
+	//	gui.app.SetFocus(gui.layout)
 }
 
 // MsgInputHandler is the key handler for the chat message input field
 func (gui *ChatGUI) MsgInputHandler(key tcell.Key) {
 	if key == tcell.KeyEnter && gui.selectedFriendName != "" {
-		gui.sendDirectMessageHandler(gui.selectedFriendName, gui.msgInput.GetText())
-		gui.layout.RemoveItem(gui.msgInput)
-		for idx, primitive := range gui.focusableElements {
+		for _, primitive := range gui.focusableElements {
 			if primitive == gui.msgInput {
-				gui.focusableElements = append(gui.focusableElements[:idx], gui.focusableElements[idx+1:]...)
+				gui.sendDirectMessageHandler(gui.selectedFriendName, gui.msgInput.GetText())
+
+				gui.msgInput.SetText("")
 			}
 		}
-		gui.AddMsgInput()
 	}
 }
 
 func formatChatMessage(sender, message string, timestamp int64) []byte {
 	var buf bytes.Buffer
-
+	log.Println("start formatting")
 	tm := time.Unix(timestamp/1000, 0)
 	buf.WriteString(fmt.Sprintf("[dimgray]%02d-%02d %02d:%02d[white]", tm.Day(), tm.Month(), tm.Hour(), tm.Minute()))
 	buf.WriteString(" [blue]<")
@@ -124,21 +126,19 @@ func formatChatMessage(sender, message string, timestamp int64) []byte {
 }
 
 func (gui *ChatGUI) DisplayMessage(username, msg string, timestamp int64) {
-	gui.app.QueueUpdate(func() {
-		fmtMsg := formatChatMessage(username, msg, timestamp)
-		gui.msgView.Write(fmtMsg)
-		gui.app.Draw()
-	})
+	fmtMsg := formatChatMessage(username, msg, timestamp)
+	gui.msgView.Write(fmtMsg)
 }
-
 
 // Called when a friend is selected in the list
 func (gui *ChatGUI) onFriendSelected(index int, name, secText string, scut rune) {
-	gui.selectedFriendName = name
-	log.Println(name)
+	if gui.selectedFriendName != name {
+		gui.selectedFriendName = name
+		gui.loadMsgHistory()
+	}
 }
 
-func (gui *ChatGUI) onInviteSelected(index int, name, secText string, scut rune) {
+func (gui *ChatGUI) onRequestSelected(index int, name, secText string, scut rune) {
 	gui.acceptFriendRequestHandler(name)
 	gui.removeCurrentRequest()
 	log.Println(name)
@@ -175,4 +175,14 @@ func (gui *ChatGUI) addToRequestsList(request string) {
 
 func (gui *ChatGUI) removeCurrentRequest() {
 	gui.requestsListView.RemoveItem(gui.requestsListView.GetCurrentItem())
+}
+
+func (gui *ChatGUI) loadMsgHistory() {
+	gui.msgView.Clear()
+
+	messages := gui.getMsgList(gui.selectedFriendName)
+	for _, msg := range messages {
+		gui.DisplayMessage(msg.SenderName, msg.Message, msg.Timestamp)
+	}
+	gui.msgView.ScrollToEnd()
 }

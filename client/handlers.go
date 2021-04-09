@@ -97,8 +97,8 @@ func (c *Client) acceptFriendHandler(friendname string) {
 	} else {
 		sharedKey := c.keys.KeyMixing(c.friendRequests[friendname])
 		c.friends[friendname] = sharedKey
-		c.dal.InsertIntoFriends(friendname, sharedKey, c.username)
-		c.dal.DeleteFromRequests(friendname, c.username)
+		c.InsertIntoFriends(friendname, sharedKey)
+		c.DeleteFromRequests(friendname)
 		c.gui.chatGUI.addToFriendList(friendname)
 		delete(c.friendRequests, friendname)
 	}
@@ -122,17 +122,20 @@ func (c *Client) declineFriendHandler(friendname string) {
 
 func (c *Client) sendDirectMessage(friendname string, msg string) {
 	timestamp := util.NowMillis()
+
+	log.Println(msg)
 	err := websock.Send(c.ws, &websock.Message{Type: websock.DirectMessage, Message: &websock.ChatMessage{
 		Sender:    c.username,
 		Receiver:  friendname,
 		Timestamp: timestamp,
 		Message:   util.EncryptDirectMessage(c.friends[friendname], msg),
 	}})
-	c.dal.InsertIntoMessages(c.username, friendname, msg, timestamp)
-	c.gui.chatGUI.DisplayMessage(c.username, msg, timestamp)
+
 	if err != nil {
-		fmt.Println("Message is now sent")
+		c.gui.ShowDialog("Message is not sent", nil)
 	} else {
-		fmt.Println("Message is sent")
+		c.gui.chatGUI.DisplayMessage(c.username, msg, timestamp)
+
+		go c.dal.InsertIntoMessages(c.username, friendname, msg, timestamp)
 	}
 }

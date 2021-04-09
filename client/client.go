@@ -100,14 +100,15 @@ func main() {
 	client.dal = createDAL("chat.db", log.New(f, "\r\n", log.LstdFlags))
 
 	guiConfig := &GUIConfig{
-		DefaultServerText:   serverStr,
-		createUserHandler:   client.createUserHandler,
-		loginUserHandler:    client.loginUserHandler,
-		inviteFriendHandler: client.inviteFriendHandler,
-		chatInfoHandler:     client.chatInfoHandler,
-		acceptFriendRequestHandler:	client.acceptFriendHandler,
-		sendDirectMessageHandler:	client.sendDirectMessage}
-
+		DefaultServerText:          serverStr,
+		createUserHandler:          client.createUserHandler,
+		loginUserHandler:           client.loginUserHandler,
+		inviteFriendHandler:        client.inviteFriendHandler,
+		chatInfoHandler:            client.chatInfoHandler,
+		acceptFriendRequestHandler: client.acceptFriendHandler,
+		sendDirectMessageHandler:   client.sendDirectMessage,
+		getMsgList:                 client.GetMessagesList,
+	}
 
 	client.gui = NewGUI(guiConfig)
 

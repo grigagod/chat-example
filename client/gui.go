@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/grigagod/chat-example/sdb"
 	"github.com/rivo/tview"
 	//"math/big"
 )
@@ -15,6 +16,7 @@ type GUIConfig struct {
 	declineFriendRequestHandler func(friendname string)
 	sendDirectMessageHandler    func(friendname string, msg string)
 	chatInfoHandler             func()
+	getMsgList                  func(friendname string) []*sdb.Message
 }
 
 type GUI struct {
@@ -43,6 +45,7 @@ func NewGUI(config *GUIConfig) *GUI {
 		acceptFriendRequestHandler:  config.acceptFriendRequestHandler,
 		declineFriendRequestHandler: config.declineFriendRequestHandler,
 		sendDirectMessageHandler:    config.sendDirectMessageHandler,
+		getMsgList:                  config.getMsgList,
 	}
 	g.chatGUI.Create()
 

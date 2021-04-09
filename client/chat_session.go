@@ -15,11 +15,11 @@ func (c *Client) StartChatSession() {
 	c.friendRequests = make(map[string]*big.Int, 0)
 	c.friends = make(map[string]*big.Int, 0)
 
-	for _, friend := range c.dal.GetFriendsList(c.username) {
+	for _, friend := range c.GetFriendsList() {
 		c.friends[friend.FriendName] = new(big.Int).SetBytes(friend.SharedKey)
 		c.gui.chatGUI.addToFriendList(friend.FriendName)
 	}
-	for _, request := range c.dal.GetRequestsList(c.username) {
+	for _, request := range c.GetRequestsList() {
 		c.friendRequests[request.SenderName] = new(big.Int).SetBytes(request.SenderKey)
 		c.gui.chatGUI.addToRequestsList(request.SenderName)
 	}
@@ -34,24 +34,17 @@ func (c *Client) StartChatSession() {
 		case websock.ChatInfoResponse:
 			chatInfo := msg.Message.(*websock.ChatInfoMessage)
 			c.users = chatInfo.Users
-				
 			for idx, user := range c.users {
 				if user == c.username {
 					c.users = append(c.users[:idx], c.users[idx+1:]...)
 				}
-			}
-
-			i := 0
-			for _, user := range c.users {
 				for friend, _ := range c.friends {
-					if user != friend {
-						c.users[i] = user
-						i++
+					if user == friend {
+						c.users = append(c.users[:idx], c.users[idx+1:]...)
 					}
 				}
 			}
-			c.users = c.users[:i]	
-			
+
 			//log.Println(c.users)
 			c.gui.ShowAddFriendGUI(c)
 		case websock.KeyExchangeStatus:
@@ -68,7 +61,7 @@ func (c *Client) StartChatSession() {
 			c.friendRequests[keyExchMsg.Friendname] = friendKey
 
 			c.gui.chatGUI.addToRequestsList(keyExchMsg.Friendname)
-			go c.dal.InsertIntoRequests(keyExchMsg.Friendname, keyExchMsg.FriendPubKey, c.username)
+			go c.InsertIntoRequests(keyExchMsg.Friendname, keyExchMsg.FriendPubKey)
 		case websock.KeyExchangeAccept:
 			friendData := msg.Message.(*websock.KeyExchangeMessage)
 
@@ -84,8 +77,8 @@ func (c *Client) StartChatSession() {
 			delete(c.friendRequests, friendData.Friendname)
 			c.gui.chatGUI.addToFriendList(friendData.Friendname)
 
-			go c.dal.InsertIntoFriends(friendData.Friendname, sharedKey, c.username)
-			go c.dal.DeleteFromRequests(friendData.Friendname, c.username)
+			go c.InsertIntoFriends(friendData.Friendname, sharedKey)
+			go c.DeleteFromRequests(friendData.Friendname)
 		case websock.KeyExchangeDecline:
 			friendName := msg.Message.(string)
 			c.gui.ShowDialog(fmt.Sprint("User :", friendName, " declined your invite"), nil)
@@ -94,7 +87,7 @@ func (c *Client) StartChatSession() {
 
 			if c.friends[message.Sender] != nil {
 				decrMsg := util.DecryptDirectMessage(c.friends[message.Sender], message.Message)
-				// log.Println("[", message.Sender, "]: ", decrMsg)
+				log.Println("[", message.Sender, "]: ", decrMsg)
 				c.gui.chatGUI.DisplayMessage(message.Sender, decrMsg, message.Timestamp)
 				go c.dal.InsertIntoMessages(message.Sender, message.Receiver, decrMsg, message.Timestamp)
 			} else {
