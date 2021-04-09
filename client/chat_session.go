@@ -23,6 +23,7 @@ func (c *Client) StartChatSession() {
 		c.friendRequests[request.SenderName] = new(big.Int).SetBytes(request.SenderKey)
 		c.gui.chatGUI.addToRequestsList(request.SenderName)
 	}
+
 	for {
 		msg, err := c.wsReader.GetNext()
 		if err != nil {
@@ -33,19 +34,27 @@ func (c *Client) StartChatSession() {
 		switch msg.Type {
 		case websock.ChatInfoResponse:
 			chatInfo := msg.Message.(*websock.ChatInfoMessage)
-			c.users = chatInfo.Users
-			for idx, user := range c.users {
+			filteredUsers := make([]string, 0)
+			for _, user := range chatInfo.Users {
 				if user == c.username {
-					c.users = append(c.users[:idx], c.users[idx+1:]...)
+					continue
 				}
+				i := 0
 				for friend, _ := range c.friends {
 					if user == friend {
-						c.users = append(c.users[:idx], c.users[idx+1:]...)
+						log.Println(friend)
+						break
+					} else {
+						i = i + 1
 					}
+
+				}
+				if len(c.friends) == i {
+					filteredUsers = append(filteredUsers, user)
 				}
 			}
 
-			//log.Println(c.users)
+			c.users = filteredUsers
 			c.gui.ShowAddFriendGUI(c)
 		case websock.KeyExchangeStatus:
 			keyExchInfo := msg.Message.(string)
@@ -87,9 +96,13 @@ func (c *Client) StartChatSession() {
 
 			if c.friends[message.Sender] != nil {
 				decrMsg := util.DecryptDirectMessage(c.friends[message.Sender], message.Message)
-				log.Println("[", message.Sender, "]: ", decrMsg)
-				c.gui.chatGUI.DisplayMessage(message.Sender, decrMsg, message.Timestamp)
+
 				go c.dal.InsertIntoMessages(message.Sender, message.Receiver, decrMsg, message.Timestamp)
+				if c.gui.chatGUI.selectedFriendName == message.Sender {
+
+					c.gui.chatGUI.DisplayMessage(message.Sender, decrMsg, message.Timestamp)
+				}
+
 			} else {
 				log.Println("Can't decrypt entering message")
 			}

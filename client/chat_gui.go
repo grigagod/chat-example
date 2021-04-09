@@ -35,6 +35,9 @@ type ChatGUI struct {
 
 	focusableElements []tview.Primitive
 	focusedIndex      int
+
+	currentRow   int
+	maxRowOffset int
 }
 
 // Create initializes the widgets in the chat GUI
@@ -47,7 +50,7 @@ func (gui *ChatGUI) Create() {
 		SetTitleAlign(tview.AlignLeft)
 
 	gui.msgView = tview.NewTextView()
-	gui.msgView.SetDynamicColors(true).
+	gui.msgView.SetDynamicColors(true).SetScrollable(true).
 		SetBorder(true).
 		SetTitle("Chat")
 
@@ -73,6 +76,7 @@ func (gui *ChatGUI) Create() {
 	}
 
 	gui.focusableElements = []tview.Primitive{
+		gui.msgView,
 		gui.friendsListView,
 		gui.requestsListView,
 		gui.addFriendBtn,
@@ -128,6 +132,7 @@ func formatChatMessage(sender, message string, timestamp int64) []byte {
 func (gui *ChatGUI) DisplayMessage(username, msg string, timestamp int64) {
 	fmtMsg := formatChatMessage(username, msg, timestamp)
 	gui.msgView.Write(fmtMsg)
+	gui.msgView.ScrollToEnd()
 }
 
 // Called when a friend is selected in the list
@@ -155,6 +160,7 @@ func (gui *ChatGUI) KeyHandler(key *tcell.EventKey) *tcell.EventKey {
 			gui.focusedIndex = 0
 		}
 		gui.app.SetFocus(gui.focusableElements[gui.focusedIndex])
+		return nil
 	} else if key.Key() == tcell.KeyEnter {
 		switch gui.app.GetFocus() {
 		case gui.addFriendBtn:
