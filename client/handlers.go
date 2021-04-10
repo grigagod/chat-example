@@ -61,7 +61,7 @@ func (c *Client) loginUserHandler(server string, username string) {
 	// Receive auth challenge from server
 	res, err := c.wsReader.GetNext()
 	if err != nil {
-		fmt.Println(err.Error())
+		c.gui.ShowDialog(err.Error(), nil)
 		return
 	}
 
@@ -99,7 +99,7 @@ func (c *Client) acceptFriendHandler(friendname string) {
 		c.friends[friendname] = sharedKey
 		c.InsertIntoFriends(friendname, sharedKey)
 		c.DeleteFromRequests(friendname)
-		c.gui.chatGUI.addToFriendList(friendname)
+		go c.gui.chatGUI.addToFriendList(friendname)
 		delete(c.friendRequests, friendname)
 	}
 }
@@ -107,14 +107,14 @@ func (c *Client) acceptFriendHandler(friendname string) {
 func (c *Client) inviteFriendHandler(friendname string) {
 	err := websock.Send(c.ws, &websock.Message{Type: websock.KeyExchangeInit, Message: friendname})
 	if err != nil {
-		fmt.Println(err)
+		c.gui.ShowDialog(err.Error(), nil)
 	}
 }
 
 func (c *Client) declineFriendHandler(friendname string) {
 	err := websock.Send(c.ws, &websock.Message{Type: websock.KeyExchangeDecline, Message: friendname})
 	if err != nil {
-		fmt.Println(err)
+		c.gui.ShowDialog(err.Error(), nil)
 	} else {
 		delete(c.friendRequests, friendname)
 	}

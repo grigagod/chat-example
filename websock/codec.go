@@ -103,10 +103,6 @@ func checkType(v interface{}, msgType MessageType) error {
 		if _, ok := v.(*KeyExchangeMessage); !ok {
 			return errors.New("Expected message type *KeyExchangeMessage")
 		}
-	case DirectMessageReceived:
-		if _, ok := v.(*ChatMessage); !ok {
-			return errors.New("Expected message type *ChatMessage")
-		}
 	case ChatUsersInfo, Ping, Pong:
 		if v != nil {
 			return errors.New("Expected message to be nil")

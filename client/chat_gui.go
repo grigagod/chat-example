@@ -149,9 +149,7 @@ func (gui *ChatGUI) onFriendSelected(index int, name, secText string, scut rune)
 }
 
 func (gui *ChatGUI) onRequestSelected(index int, name, secText string, scut rune) {
-	gui.acceptFriendRequestHandler(name)
-	gui.removeCurrentRequest()
-	log.Println(name)
+	gui.showRequestModal(name)
 }
 
 // KeyHandler is the keyboard input handler for the chat rooms interface
@@ -178,10 +176,16 @@ func (gui *ChatGUI) KeyHandler(key *tcell.EventKey) *tcell.EventKey {
 
 func (gui *ChatGUI) addToFriendList(friend string) {
 	gui.friendsListView.AddItem(friend, "", 0, nil)
+	gui.app.Draw()
+}
+
+func (gui *ChatGUI) instantAddToFriendList(friend string) {
+	gui.friendsListView.AddItem(friend, "", 0, nil)
 }
 
 func (gui *ChatGUI) addToRequestsList(request string) {
 	gui.requestsListView.AddItem(request, "", 0, nil)
+	gui.app.Draw()
 }
 
 func (gui *ChatGUI) removeCurrentRequest() {
@@ -196,4 +200,25 @@ func (gui *ChatGUI) loadMsgHistory() {
 		gui.InstantDisplayMessage(msg.SenderName, msg.Message, msg.Timestamp)
 	}
 	gui.msgView.ScrollToEnd()
+}
+
+func (gui *ChatGUI) showRequestModal(name string) {
+	modal := tview.NewModal()
+	modal.SetText(fmt.Sprint("Request from ", name)).
+		AddButtons([]string{"Accept", "Decline"}).
+		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+			if buttonLabel == "Accept" {
+				gui.acceptFriendRequestHandler(name)
+				gui.removeCurrentRequest()
+				gui.pages.RemovePage("request")
+			} else {
+				gui.declineFriendRequestHandler(name)
+				gui.removeCurrentRequest()
+				gui.pages.RemovePage("request")
+			}
+		})
+	gui.pages.AddPage("request", modal, true, true)
+	gui.app.SetFocus(modal)
+	gui.app.ForceDraw()
+
 }

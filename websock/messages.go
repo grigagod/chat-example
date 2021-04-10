@@ -32,8 +32,6 @@ const (
 
 	// SendDirect is sent when a client sends a direct message
 	DirectMessage
-	// DirectMessageReceived is sent by the server when another user receive a direct message
-	DirectMessageReceived
 
 	// ChatUsersInfo in sent by the client to the server when client wants get list of all users in chat with their status
 	ChatUsersInfo
@@ -65,16 +63,10 @@ type ChatInfoMessage struct {
 	Users []string
 }
 
-// KeyExchangeMessage is sent by the server
+// KeyExchangeMessage is sent by the server to the client notifying client of new invite or as a response for successful invite
 type KeyExchangeMessage struct {
 	Friendname   string
 	FriendPubKey []byte
-}
-
-// User is used in PublicKey , and by the server when notifying a client about a new connected user
-type User struct {
-	Username  string
-	PublicKey []byte
 }
 
 // ChatMessage is used in DirectMessage, and by the server when notifying a client about a new chat message

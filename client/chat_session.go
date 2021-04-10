@@ -47,7 +47,6 @@ func (c *Client) StartChatSession() {
 					} else {
 						i = i + 1
 					}
-
 				}
 				if len(c.friends) == i {
 					filteredUsers = append(filteredUsers, user)
