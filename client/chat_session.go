@@ -40,7 +40,7 @@ func (c *Client) StartChatSession() {
 					continue
 				}
 				i := 0
-				for friend, _ := range c.friends {
+				for friend := range c.friends {
 					if user == friend {
 						log.Println(friend)
 						break
@@ -100,7 +100,7 @@ func (c *Client) StartChatSession() {
 				go c.dal.InsertIntoMessages(message.Sender, message.Receiver, decrMsg, message.Timestamp)
 				if c.gui.chatGUI.selectedFriendName == message.Sender {
 
-					c.gui.chatGUI.DisplayMessage(message.Sender, decrMsg, message.Timestamp)
+					go c.gui.chatGUI.DisplayMessage(message.Sender, decrMsg, message.Timestamp)
 				}
 
 			} else {

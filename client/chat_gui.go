@@ -35,9 +35,6 @@ type ChatGUI struct {
 
 	focusableElements []tview.Primitive
 	focusedIndex      int
-
-	currentRow   int
-	maxRowOffset int
 }
 
 // Create initializes the widgets in the chat GUI
@@ -130,6 +127,14 @@ func formatChatMessage(sender, message string, timestamp int64) []byte {
 }
 
 func (gui *ChatGUI) DisplayMessage(username, msg string, timestamp int64) {
+	gui.app.QueueUpdateDraw(func() {
+		fmtMsg := formatChatMessage(username, msg, timestamp)
+		gui.msgView.Write(fmtMsg)
+		gui.msgView.ScrollToEnd()
+	})
+}
+
+func (gui *ChatGUI) InstantDisplayMessage(username, msg string, timestamp int64) {
 	fmtMsg := formatChatMessage(username, msg, timestamp)
 	gui.msgView.Write(fmtMsg)
 	gui.msgView.ScrollToEnd()
@@ -188,7 +193,7 @@ func (gui *ChatGUI) loadMsgHistory() {
 
 	messages := gui.getMsgList(gui.selectedFriendName)
 	for _, msg := range messages {
-		gui.DisplayMessage(msg.SenderName, msg.Message, msg.Timestamp)
+		gui.InstantDisplayMessage(msg.SenderName, msg.Message, msg.Timestamp)
 	}
 	gui.msgView.ScrollToEnd()
 }

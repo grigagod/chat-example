@@ -134,7 +134,7 @@ func (c *Client) sendDirectMessage(friendname string, msg string) {
 	if err != nil {
 		c.gui.ShowDialog("Message is not sent", nil)
 	} else {
-		c.gui.chatGUI.DisplayMessage(c.username, msg, timestamp)
+		go c.gui.chatGUI.DisplayMessage(c.username, msg, timestamp)
 
 		go c.dal.InsertIntoMessages(c.username, friendname, msg, timestamp)
 	}
