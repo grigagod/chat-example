@@ -1,0 +1,141 @@
+package main
+
+import (
+	"fmt"
+	"log"
+
+	// "io/ioutil"
+
+	"github.com/grigagod/chat-example/crypto"
+	"github.com/grigagod/chat-example/util"
+	"github.com/grigagod/chat-example/websock"
+)
+
+// Called when user pressed the "create user" button
+func (c *Client) createUserHandler(server string, username string) {
+	if !c.Connect(server) {
+		return
+	}
+
+	// Generate new key pair
+	keys := new(crypto.Keys)
+	keys.GenerateKeys()
+
+	// Send a request to register the user
+	regUserMsg := &websock.RegisterUserMessage{
+		Username:  username,
+		PublicKey: util.MarshalKey(keys.PublicKey)}
+
+	websock.Send(c.ws, &websock.Message{Type: websock.RegisterUser, Message: regUserMsg})
+
+	_, err := c.wsReader.GetNext()
+	if err != nil {
+		c.gui.ShowDialog("Did not get a response from the server", nil)
+		return
+	}
+
+	// Save private key to file
+	c.dal.InsertIntoUsers(username, keys.PrivateKey)
+	c.gui.ShowDialog("User created. You can now log in.", nil)
+}
+
+func (c *Client) loginUserHandler(server string, username string) {
+	if !c.Connect(server) {
+		return
+	}
+
+	// Read private key from chat.db
+	user, err := c.dal.GetUser(username)
+	if err != nil {
+		return
+	}
+
+	privKey, err := util.UnmarshalKey(user.PrivateKey)
+	if err != nil {
+		return
+	}
+
+	// Send log in request to server
+	websock.Send(c.ws, &websock.Message{Type: websock.LoginUser, Message: username})
+
+	// Receive auth challenge from server
+	res, err := c.wsReader.GetNext()
+	if err != nil {
+		c.gui.ShowDialog(err.Error(), nil)
+		return
+	}
+
+	// Try to decrypt auth challenge
+	keys := crypto.KeysFromPrivate(privKey)
+	decKey := util.DecryptChallenge(keys.PublicKey, res.Message.([]byte))
+
+	// Send decrypted auth key to server
+	websock.Send(c.ws, &websock.Message{Type: websock.AuthChallengeResponse, Message: decKey})
+
+	// Check response from server
+	if res, err = c.wsReader.GetNext(); err != nil {
+		log.Println(err)
+		return
+	}
+
+	// Login success, show the chat rooms GUI
+	c.authKey = decKey
+	c.keys = keys
+	c.username = username
+	c.gui.ShowChatGUI(c)
+
+}
+
+func (c *Client) chatInfoHandler() {
+	websock.Send(c.ws, &websock.Message{Type: websock.ChatUsersInfo})
+}
+
+func (c *Client) acceptFriendHandler(friendname string) {
+	err := websock.Send(c.ws, &websock.Message{Type: websock.KeyExchangeAccept, Message: friendname})
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		sharedKey := c.keys.KeyMixing(c.friendRequests[friendname])
+		c.friends[friendname] = sharedKey
+		c.InsertIntoFriends(friendname, sharedKey)
+		c.DeleteFromRequests(friendname)
+		go c.gui.chatGUI.addToFriendList(friendname)
+		delete(c.friendRequests, friendname)
+	}
+}
+
+func (c *Client) inviteFriendHandler(friendname string) {
+	err := websock.Send(c.ws, &websock.Message{Type: websock.KeyExchangeInit, Message: friendname})
+	if err != nil {
+		c.gui.ShowDialog(err.Error(), nil)
+	}
+}
+
+func (c *Client) declineFriendHandler(friendname string) {
+	err := websock.Send(c.ws, &websock.Message{Type: websock.KeyExchangeDecline, Message: friendname})
+	if err != nil {
+		c.gui.ShowDialog(err.Error(), nil)
+	} else {
+		delete(c.friendRequests, friendname)
+	}
+}
+
+func (c *Client) sendDirectMessage(friendname string, msg string) {
+	timestamp := util.NowMillis()
+
+	log.Println(msg)
+	err := websock.Send(c.ws, &websock.Message{Type: websock.DirectMessage, Message: &websock.ChatMessage{
+		Sender:    c.username,
+		Receiver:  friendname,
+		Timestamp: timestamp,
+		Message:   util.EncryptDirectMessage(c.friends[friendname], msg),
+	}})
+
+	if err != nil {
+		c.gui.ShowDialog("Message is not sent", nil)
+	} else {
+		go c.gui.chatGUI.DisplayMessage(c.username, msg, timestamp)
+
+		go c.dal.InsertIntoMessages(c.username, friendname, msg, timestamp)
+	}
+}
